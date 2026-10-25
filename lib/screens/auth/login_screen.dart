@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/auth_config.dart';
 import '../../services/auth_service.dart';
 import 'register_screen.dart';
 
@@ -323,75 +324,89 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Sosyal giriş ayracı
-                    const Row(
-                      children: [
-                        Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            'veya',
-                            style: TextStyle(color: Colors.grey),
+                    // Sosyal girişler ve misafir girişi aktiflik kontrolüne bağlandı
+                    if (AuthConfig.hasAnySocialLogin) ...[
+                      const SizedBox(height: 20),
+                      const Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              'veya',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                           ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Google ile giriş butonu
+                      if (AuthConfig.enableGoogle) ...[
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.g_mobiledata, size: 28, color: Colors.red),
+                          label: const Text('Google ile Giriş Yap'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: _isLoading ? null : _handleGoogleLogin,
                         ),
-                        Expanded(child: Divider()),
+                        const SizedBox(height: 12),
                       ],
-                    ),
-                    const SizedBox(height: 20),
 
-                    // Google ile giriş butonu
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.g_mobiledata, size: 28, color: Colors.red),
-                      label: const Text('Google ile Giriş Yap'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: _isLoading ? null : _handleGoogleLogin,
-                    ),
-                    const SizedBox(height: 12),
+                      // GitHub ile giriş butonu
+                      if (AuthConfig.enableGithub) ...[
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.code, size: 22, color: Colors.black87),
+                          label: const Text('GitHub ile Giriş Yap'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: _isLoading ? null : _handleGithubLogin,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
 
-                    // GitHub ile giriş butonu
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.code, size: 22, color: Colors.black87),
-                      label: const Text('GitHub ile Giriş Yap'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: _isLoading ? null : _handleGithubLogin,
-                    ),
-                    const SizedBox(height: 12),
+                      // Microsoft ile giriş butonu
+                      if (AuthConfig.enableMicrosoft) ...[
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.window, size: 22, color: Color(0xFF00A4EF)),
+                          label: const Text('Microsoft ile Giriş Yap'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: _isLoading ? null : _handleMicrosoftLogin,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
 
-                    // Microsoft ile giriş butonu
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.window, size: 22, color: Color(0xFF00A4EF)),
-                      label: const Text('Microsoft ile Giriş Yap'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: _isLoading ? null : _handleMicrosoftLogin,
-                    ),
-                    const SizedBox(height: 12),
+                      // LinkedIn ile giriş butonu
+                      if (AuthConfig.enableLinkedin) ...[
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.business, size: 22, color: Color(0xFF0A66C2)),
+                          label: const Text('LinkedIn ile Giriş Yap'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: _isLoading ? null : _handleLinkedinLogin,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
 
-                    // LinkedIn ile giriş butonu
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.business, size: 22, color: Color(0xFF0A66C2)),
-                      label: const Text('LinkedIn ile Giriş Yap'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: _isLoading ? null : _handleLinkedinLogin,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Misafir olarak giriş butonu
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.person_outline, size: 22, color: Colors.blueGrey),
-                      label: const Text('Misafir Olarak Devam Et'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: _isLoading ? null : _handleGuestLogin,
-                    ),
+                      // Misafir olarak giriş butonu
+                      if (AuthConfig.enableGuest) ...[
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.person_outline, size: 22, color: Colors.blueGrey),
+                          label: const Text('Misafir Olarak Devam Et'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: _isLoading ? null : _handleGuestLogin,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ],
                     const SizedBox(height: 16),
 
                     // Kayıt ekranına yönlendirme bağlantısı
