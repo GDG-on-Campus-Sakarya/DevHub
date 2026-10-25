@@ -58,6 +58,18 @@ class AuthService {
     }
   }
 
+  // Google hesabı ile popup üzerinden giriş yapıldı
+  Future<UserCredential> signInWithGoogle() async {
+    try {
+      final googleProvider = GoogleAuthProvider();
+      return await _auth.signInWithPopup(googleProvider);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'Google ile giriş yapılırken beklenmedik bir hata oluştu: ${e.toString()}';
+    }
+  }
+
   // Aktif oturum sonlandırıldı
   Future<void> signOut() async {
     try {

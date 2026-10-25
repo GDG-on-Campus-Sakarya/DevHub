@@ -69,6 +69,35 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Google ile giriş işlemi tetiklendi
+  Future<void> _handleGoogleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithGoogle();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google ile giriş başarılı!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,6 +204,33 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             )
                           : const Text('Giriş Yap', style: TextStyle(fontSize: 16)),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Sosyal giriş ayracı
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'veya',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Google ile giriş butonu
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.g_mobiledata, size: 28, color: Colors.red),
+                      label: const Text('Google ile Giriş Yap'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: _isLoading ? null : _handleGoogleLogin,
                     ),
                     const SizedBox(height: 16),
 
