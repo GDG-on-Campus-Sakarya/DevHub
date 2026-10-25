@@ -98,6 +98,35 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // GitHub ile giriş işlemi tetiklendi
+  Future<void> _handleGithubLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithGithub();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('GitHub ile giriş başarılı!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,6 +260,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: _isLoading ? null : _handleGoogleLogin,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // GitHub ile giriş butonu
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.code, size: 22, color: Colors.black87),
+                      label: const Text('GitHub ile Giriş Yap'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: _isLoading ? null : _handleGithubLogin,
                     ),
                     const SizedBox(height: 16),
 

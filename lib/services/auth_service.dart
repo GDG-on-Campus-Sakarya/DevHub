@@ -70,6 +70,18 @@ class AuthService {
     }
   }
 
+  // GitHub hesabı ile popup üzerinden giriş yapıldı
+  Future<UserCredential> signInWithGithub() async {
+    try {
+      final githubProvider = GithubAuthProvider();
+      return await _auth.signInWithPopup(githubProvider);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'GitHub ile giriş yapılırken beklenmedik bir hata oluştu: ${e.toString()}';
+    }
+  }
+
   // Aktif oturum sonlandırıldı
   Future<void> signOut() async {
     try {
