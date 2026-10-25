@@ -127,6 +127,35 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Microsoft ile giriş işlemi tetiklendi
+  Future<void> _handleMicrosoftLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithMicrosoft();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Microsoft ile giriş başarılı!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -271,6 +300,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: _isLoading ? null : _handleGithubLogin,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Microsoft ile giriş butonu
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.window, size: 22, color: Color(0xFF00A4EF)),
+                      label: const Text('Microsoft ile Giriş Yap'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: _isLoading ? null : _handleMicrosoftLogin,
                     ),
                     const SizedBox(height: 16),
 

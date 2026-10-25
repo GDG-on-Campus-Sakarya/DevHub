@@ -82,6 +82,18 @@ class AuthService {
     }
   }
 
+  // Microsoft hesabı ile popup üzerinden giriş yapıldı
+  Future<UserCredential> signInWithMicrosoft() async {
+    try {
+      final microsoftProvider = OAuthProvider('microsoft.com');
+      return await _auth.signInWithPopup(microsoftProvider);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'Microsoft ile giriş yapılırken beklenmedik bir hata oluştu: ${e.toString()}';
+    }
+  }
+
   // Aktif oturum sonlandırıldı
   Future<void> signOut() async {
     try {
