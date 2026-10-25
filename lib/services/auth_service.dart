@@ -12,6 +12,9 @@ class AuthService {
   // Aktif kullanıcı nesnesi alındı
   User? get currentUser => _auth.currentUser;
 
+  // Kullanıcının oturum açıp açmadığı kontrol edildi
+  bool get isAuthenticated => _auth.currentUser != null;
+
   // Yeni kullanıcı kaydı ve profil ismi güncellemesi yapıldı
   Future<UserCredential> signUp({
     required String email,
