@@ -94,6 +94,18 @@ class AuthService {
     }
   }
 
+  // LinkedIn hesabı ile OpenID Connect üzerinden giriş yapıldı
+  Future<UserCredential> signInWithLinkedin() async {
+    try {
+      final linkedinProvider = OAuthProvider('oidc.linkedin');
+      return await _auth.signInWithPopup(linkedinProvider);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'LinkedIn ile giriş yapılırken beklenmedik bir hata oluştu: ${e.toString()}';
+    }
+  }
+
   // Aktif oturum sonlandırıldı
   Future<void> signOut() async {
     try {

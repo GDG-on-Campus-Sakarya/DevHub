@@ -156,6 +156,35 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // LinkedIn ile giriş işlemi tetiklendi
+  Future<void> _handleLinkedinLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithLinkedin();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('LinkedIn ile giriş başarılı!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -311,6 +340,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: _isLoading ? null : _handleMicrosoftLogin,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // LinkedIn ile giriş butonu
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.business, size: 22, color: Color(0xFF0A66C2)),
+                      label: const Text('LinkedIn ile Giriş Yap'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: _isLoading ? null : _handleLinkedinLogin,
                     ),
                     const SizedBox(height: 16),
 
