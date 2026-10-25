@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/home/home_screen.dart';
+import 'screens/auth/auth_gate.dart';
 
 class DevHubApp extends StatelessWidget {
   const DevHubApp({super.key});
@@ -12,6 +12,7 @@ class DevHubApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3157D5)),
       useMaterial3: true,
     ),
-    home: const HomeScreen(),
+    // Uygulama girişi oturum kontrol kapısına (AuthGate) bağlandı
+    home: const AuthGate(),
   );
 }
