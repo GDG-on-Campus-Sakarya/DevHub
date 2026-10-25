@@ -106,6 +106,17 @@ class AuthService {
     }
   }
 
+  // Misafir (anonim) olarak giriş yapıldı
+  Future<UserCredential> signInAnonymously() async {
+    try {
+      return await _auth.signInAnonymously();
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'Misafir girişi yapılırken beklenmedik bir hata oluştu: ${e.toString()}';
+    }
+  }
+
   // Aktif oturum sonlandırıldı
   Future<void> signOut() async {
     try {

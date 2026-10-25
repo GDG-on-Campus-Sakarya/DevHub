@@ -185,6 +185,35 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Misafir (anonim) girişi tetiklendi
+  Future<void> _handleGuestLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInAnonymously();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Misafir girişi başarılı!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -351,6 +380,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: _isLoading ? null : _handleLinkedinLogin,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Misafir olarak giriş butonu
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.person_outline, size: 22, color: Colors.blueGrey),
+                      label: const Text('Misafir Olarak Devam Et'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: _isLoading ? null : _handleGuestLogin,
                     ),
                     const SizedBox(height: 16),
 
