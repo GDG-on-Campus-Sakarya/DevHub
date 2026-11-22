@@ -28,7 +28,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   List<Project> _applyFilters(List<Project> projects) {
     final q = _query.trim().toLowerCase();
     return projects.where((p) {
-      if (_technology != null && !p.technologies.contains(_technology)) return false;
+      if (_technology != null && !p.technologies.contains(_technology)) {
+        return false;
+      }
       if (_role != null && !p.neededRoles.contains(_role)) return false;
       if (q.isEmpty) return true;
       return p.title.toLowerCase().contains(q) ||
@@ -45,7 +47,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   // Sahibi, üyesi veya misafir olan kullanıcıya "Şimdi başvur" gösterilmedi
   VoidCallback? _applyAction(Project project) {
     final uid = _service.currentUserId;
-    if (!_service.canContribute || project.isOwner(uid) || project.isMember(uid)) {
+    if (!_service.canContribute ||
+        project.isOwner(uid) ||
+        project.isMember(uid)) {
       return null;
     }
     return () => showApplyDialog(context, project);
@@ -60,8 +64,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         title: const Text('Projeleri Keşfet'),
         actions: [
           if (canContribute) ...[
-            TextButton(onPressed: () => _push(const MyProjectsScreen()), child: const Text('Projelerim')),
-            TextButton(onPressed: () => _push(const ApplicationsScreen()), child: const Text('Başvurularım')),
+            TextButton(
+                onPressed: () => _push(const MyProjectsScreen()),
+                child: const Text('Projelerim')),
+            TextButton(
+                onPressed: () => _push(const ApplicationsScreen()),
+                child: const Text('Başvurularım')),
             TextButton(
                 onPressed: () => _push(const IncomingApplicationsScreen()),
                 child: const Text('Gelen Başvurular')),
@@ -87,15 +95,18 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
           final all = snapshot.data!;
           final filtered = _applyFilters(all);
-          final technologies = {for (final p in all) ...p.technologies}.toList()..sort();
-          final roles = {for (final p in all) ...p.neededRoles}.toList()..sort();
+          final technologies = {for (final p in all) ...p.technologies}.toList()
+            ..sort();
+          final roles = {for (final p in all) ...p.neededRoles}.toList()
+            ..sort();
 
           return LayoutBuilder(builder: (context, constraints) {
             final width = constraints.maxWidth;
             final columns = width >= 1100 ? 3 : (width >= 720 ? 2 : 1);
             const gap = 16.0;
             final padding = width >= 720 ? 32.0 : 16.0;
-            final cardWidth = (width - padding * 2 - gap * (columns - 1)) / columns;
+            final cardWidth =
+                (width - padding * 2 - gap * (columns - 1)) / columns;
 
             return SingleChildScrollView(
               padding: EdgeInsets.all(padding),
@@ -103,7 +114,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _Header(
-                    onCreate: canContribute ? () => _push(const CreateProjectScreen()) : null,
+                    onCreate: canContribute
+                        ? () => _push(const CreateProjectScreen())
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   _Filters(
@@ -139,7 +152,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         for (final project in filtered)
                           SizedBox(
                             width: cardWidth,
-                            child: ProjectCard(project: project, onApply: _applyAction(project)),
+                            child: ProjectCard(
+                                project: project,
+                                onApply: _applyAction(project)),
                           ),
                       ],
                     ),
@@ -184,11 +199,13 @@ class _Header extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('SANA UYGUN SONUÇLAR',
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(color: theme.colorScheme.primary, letterSpacing: 1.2)),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          letterSpacing: 1.2)),
                   const SizedBox(height: 8),
                   Text('Projeleri Keşfet',
-                      style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      style: theme.textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
                   Text(
                     'Heyecan verici öğrenci projelerini keşfet, yetenekli ekip arkadaşlarıyla tanış ve birlikte anlamlı işler üret.',
@@ -227,16 +244,19 @@ class _Filters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget dropdown(String hint, String? value, List<String> items, ValueChanged<String?> onChanged) {
+    Widget dropdown(String hint, String? value, List<String> items,
+        ValueChanged<String?> onChanged) {
       return SizedBox(
         width: 200,
         child: DropdownButtonFormField<String?>(
           initialValue: value,
           isExpanded: true,
-          decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), isDense: true),
           items: [
             DropdownMenuItem(value: null, child: Text(hint)),
-            for (final item in items) DropdownMenuItem(value: item, child: Text(item)),
+            for (final item in items)
+              DropdownMenuItem(value: item, child: Text(item)),
           ],
           onChanged: onChanged,
         ),
@@ -264,7 +284,8 @@ class _Filters extends StatelessWidget {
                 ),
               ),
             ),
-            dropdown('Tüm teknolojiler', technology, technologies, onTechnology),
+            dropdown(
+                'Tüm teknolojiler', technology, technologies, onTechnology),
             dropdown('Tüm roller', role, roles, onRole),
           ],
         ),
@@ -289,9 +310,11 @@ class _Message extends StatelessWidget {
         children: [
           Icon(icon, size: 48, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(height: 12),
-          Text(title, style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+          Text(title,
+              style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
           const SizedBox(height: 4),
-          Text(body, style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
+          Text(body,
+              style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
         ],
       ),
     );

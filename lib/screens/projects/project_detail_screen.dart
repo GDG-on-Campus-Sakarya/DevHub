@@ -19,7 +19,8 @@ class ProjectDetailScreen extends StatefulWidget {
 
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   final _service = ProjectService();
-  late final Stream<Project?> _project = _service.streamProject(widget.projectId);
+  late final Stream<Project?> _project =
+      _service.streamProject(widget.projectId);
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +30,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         stream: _project,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Proje yüklenemedi. Lütfen tekrar dene.'));
+            return const Center(
+                child: Text('Proje yüklenemedi. Lütfen tekrar dene.'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           final project = snapshot.data;
           if (project == null) {
-            return const Center(child: Text('Bu proje bulunamadı. Silinmiş olabilir.'));
+            return const Center(
+                child: Text('Bu proje bulunamadı. Silinmiş olabilir.'));
           }
 
           return LayoutBuilder(builder: (context, constraints) {
@@ -124,7 +127,8 @@ class _Hero extends StatelessWidget {
         StatusBadge.project(project.status),
         const SizedBox(height: 12),
         Text(project.title,
-            style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
+            style: theme.textTheme.headlineMedium
+                ?.copyWith(fontWeight: FontWeight.w700)),
         if (project.ownerName.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text('Proje sahibi: ${project.ownerName}',
@@ -141,8 +145,12 @@ class _Hero extends StatelessWidget {
       child: wide
           ? Row(
               children: [
-                Expanded(child: Padding(padding: const EdgeInsets.all(28), child: info)),
-                SizedBox(width: 360, child: ProjectCover(project: project, height: 180)),
+                Expanded(
+                    child: Padding(
+                        padding: const EdgeInsets.all(28), child: info)),
+                SizedBox(
+                    width: 360,
+                    child: ProjectCover(project: project, height: 180)),
               ],
             )
           : Column(
@@ -165,7 +173,8 @@ class _Stats extends StatelessWidget {
     final stats = {
       'Ekip büyüklüğü': '${project.memberIds.length} üye',
       'Açık roller': '${project.neededRoles.length}',
-      'Ana teknoloji': project.technologies.isEmpty ? '—' : project.technologies.first,
+      'Ana teknoloji':
+          project.technologies.isEmpty ? '—' : project.technologies.first,
     };
     return Card(
       elevation: 0,
@@ -178,8 +187,10 @@ class _Stats extends StatelessWidget {
               width: 240,
               child: ListTile(
                 dense: true,
-                title: Text(entry.key, style: Theme.of(context).textTheme.bodySmall),
-                trailing: Text(entry.value, style: const TextStyle(fontWeight: FontWeight.w600)),
+                title: Text(entry.key,
+                    style: Theme.of(context).textTheme.bodySmall),
+                trailing: Text(entry.value,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
         ],
@@ -214,9 +225,12 @@ class _MainColumn extends StatelessWidget {
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
                           backgroundColor: theme.colorScheme.primaryContainer,
-                          child: Icon(Icons.group_outlined, color: theme.colorScheme.primary),
+                          child: Icon(Icons.group_outlined,
+                              color: theme.colorScheme.primary),
                         ),
-                        title: Text(role, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        title: Text(role,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
                       ),
                   ],
                 ),
@@ -248,14 +262,17 @@ class _SideColumn extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Bu projenin sahibisin. Bilgileri güncelleyebilir ve gelen başvuruları değerlendirebilirsin.'),
+            const Text(
+                'Bu projenin sahibisin. Bilgileri güncelleyebilir ve gelen başvuruları değerlendirebilirsin.'),
             const SizedBox(height: 16),
             FilledButton.icon(
               icon: const Icon(Icons.inbox_outlined),
               label: const Text('Gelen başvuruları gör'),
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => IncomingApplicationsScreen(projectId: project.id)),
+                MaterialPageRoute(
+                    builder: (_) =>
+                        IncomingApplicationsScreen(projectId: project.id)),
               ),
             ),
             const SizedBox(height: 8),
@@ -264,7 +281,8 @@ class _SideColumn extends StatelessWidget {
               label: const Text('Projeyi düzenle'),
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => CreateProjectScreen(project: project)),
+                MaterialPageRoute(
+                    builder: (_) => CreateProjectScreen(project: project)),
               ),
             ),
           ],
@@ -273,13 +291,15 @@ class _SideColumn extends StatelessWidget {
     }
 
     if (project.isMember(uid)) {
-      return const _Panel(title: 'Ekiptesin', child: Text('Bu projenin bir üyesisin.'));
+      return const _Panel(
+          title: 'Ekiptesin', child: Text('Bu projenin bir üyesisin.'));
     }
 
     if (!service.canContribute) {
       return const _Panel(
         title: 'Katkı sunmaya hazır mısın?',
-        child: Text('Başvurmak için misafir olarak değil, hesabınla giriş yapmalısın.'),
+        child: Text(
+            'Başvurmak için misafir olarak değil, hesabınla giriş yapmalısın.'),
       );
     }
 
@@ -288,7 +308,8 @@ class _SideColumn extends StatelessWidget {
       stream: service.streamMyApplicationFor(project.id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const _Panel(child: Center(child: CircularProgressIndicator()));
+          return const _Panel(
+              child: Center(child: CircularProgressIndicator()));
         }
         final application = snapshot.data;
         if (application != null) {
@@ -315,7 +336,8 @@ class _SideColumn extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Kendini ekibe tanıt ve yeteneklerinin projeyi nasıl ileri taşıyabileceğini anlat.'),
+              const Text(
+                  'Kendini ekibe tanıt ve yeteneklerinin projeyi nasıl ileri taşıyabileceğini anlat.'),
               const SizedBox(height: 16),
               FilledButton.icon(
                 icon: const Icon(Icons.arrow_forward),

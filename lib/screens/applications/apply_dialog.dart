@@ -40,10 +40,13 @@ class _ApplyDialogState extends State<_ApplyDialog> {
       _error = null;
     });
     try {
-      await ProjectService().applyToProject(widget.project, _messageController.text);
+      await ProjectService()
+          .applyToProject(widget.project, _messageController.text);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Başvurun gönderildi. Durumu "Başvurularım" sayfasından takip edebilirsin.')),
+        const SnackBar(
+            content: Text(
+                'Başvurun gönderildi. Durumu "Başvurularım" sayfasından takip edebilirsin.')),
       );
       Navigator.pop(context, true);
     } catch (e) {
@@ -80,10 +83,12 @@ class _ApplyDialogState extends State<_ApplyDialog> {
                         children: [
                           Text('BAŞVURU',
                               style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.primary, letterSpacing: 1.2)),
+                                  color: theme.colorScheme.primary,
+                                  letterSpacing: 1.2)),
                           const SizedBox(height: 6),
                           Text('Başvur: ${widget.project.title}',
-                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+                              style: theme.textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
                           Text('Neden iyi bir ekip arkadaşı olacağını anlat.',
                               style: theme.textTheme.bodySmall),
@@ -92,7 +97,9 @@ class _ApplyDialogState extends State<_ApplyDialog> {
                     ),
                     IconButton(
                       tooltip: 'Kapat',
-                      onPressed: _submitting ? null : () => Navigator.pop(context, false),
+                      onPressed: _submitting
+                          ? null
+                          : () => Navigator.pop(context, false),
                       icon: const Icon(Icons.close),
                     ),
                   ],
@@ -106,7 +113,8 @@ class _ApplyDialogState extends State<_ApplyDialog> {
                   maxLength: _maxLength,
                   enabled: !_submitting,
                   decoration: const InputDecoration(
-                    hintText: 'İlgini, deneyimini ve projeye nasıl katkı sağlayabileceğini paylaş...',
+                    hintText:
+                        'İlgini, deneyimini ve projeye nasıl katkı sağlayabileceğini paylaş...',
                     helperText: '50–500 karakter önerilir',
                     border: OutlineInputBorder(),
                   ),
@@ -119,14 +127,17 @@ class _ApplyDialogState extends State<_ApplyDialog> {
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+                  Text(_error!,
+                      style: TextStyle(color: theme.colorScheme.error)),
                 ],
                 const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton(
-                      onPressed: _submitting ? null : () => Navigator.pop(context, false),
+                      onPressed: _submitting
+                          ? null
+                          : () => Navigator.pop(context, false),
                       child: const Text('İptal'),
                     ),
                     const SizedBox(width: 8),
@@ -134,7 +145,9 @@ class _ApplyDialogState extends State<_ApplyDialog> {
                       onPressed: _submitting ? null : _submit,
                       child: _submitting
                           ? const SizedBox(
-                              width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2))
                           : const Text('Başvuruyu gönder'),
                     ),
                   ],

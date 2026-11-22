@@ -12,10 +12,12 @@ class IncomingApplicationsScreen extends StatefulWidget {
   final String? projectId;
 
   @override
-  State<IncomingApplicationsScreen> createState() => _IncomingApplicationsScreenState();
+  State<IncomingApplicationsScreen> createState() =>
+      _IncomingApplicationsScreenState();
 }
 
-class _IncomingApplicationsScreenState extends State<IncomingApplicationsScreen> {
+class _IncomingApplicationsScreenState
+    extends State<IncomingApplicationsScreen> {
   final _service = ProjectService();
   late final Stream<List<ProjectApplication>> _applications =
       _service.streamIncomingApplications(projectId: widget.projectId);
@@ -29,10 +31,15 @@ class _IncomingApplicationsScreenState extends State<IncomingApplicationsScreen>
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Başvuruyu reddet'),
-          content: Text('${application.applicantName} adlı kişinin başvurusu reddedilsin mi?'),
+          content: Text(
+              '${application.applicantName} adlı kişinin başvurusu reddedilsin mi?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Vazgeç')),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Reddet')),
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Vazgeç')),
+            FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Reddet')),
           ],
         ),
       );
@@ -50,7 +57,8 @@ class _IncomingApplicationsScreenState extends State<IncomingApplicationsScreen>
       ));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       if (mounted) setState(() => _busy.remove(application.id));
     }
@@ -84,7 +92,8 @@ class _IncomingApplicationsScreenState extends State<IncomingApplicationsScreen>
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => ProjectDetailScreen(projectId: application.projectId)),
+                          builder: (_) => ProjectDetailScreen(
+                              projectId: application.projectId)),
                     ),
                     icon: const Icon(Icons.arrow_forward, size: 16),
                     label: const Text('Projeyi gör'),

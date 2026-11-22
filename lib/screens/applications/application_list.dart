@@ -50,14 +50,17 @@ class ApplicationTabs extends StatelessWidget {
               ),
             ),
             body: snapshot.hasError
-                ? const Center(child: Text('Başvurular yüklenemedi. Lütfen tekrar dene.'))
+                ? const Center(
+                    child: Text('Başvurular yüklenemedi. Lütfen tekrar dene.'))
                 : !snapshot.hasData
                     ? const Center(child: CircularProgressIndicator())
                     : TabBarView(
                         children: [
                           for (final f in _filters)
                             _List(
-                              items: f == null ? all : all.where((a) => a.status == f).toList(),
+                              items: f == null
+                                  ? all
+                                  : all.where((a) => a.status == f).toList(),
                               itemBuilder: itemBuilder,
                               emptyText: emptyText,
                             ),
@@ -71,7 +74,10 @@ class ApplicationTabs extends StatelessWidget {
 }
 
 class _List extends StatelessWidget {
-  const _List({required this.items, required this.itemBuilder, required this.emptyText});
+  const _List(
+      {required this.items,
+      required this.itemBuilder,
+      required this.emptyText});
   final List<ProjectApplication> items;
   final Widget Function(BuildContext, ProjectApplication) itemBuilder;
   final String emptyText;
@@ -79,7 +85,9 @@ class _List extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(emptyText)));
+      return Center(
+          child: Padding(
+              padding: const EdgeInsets.all(24), child: Text(emptyText)));
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -116,7 +124,12 @@ class ApplicationTile extends StatelessWidget {
     final muted = theme.colorScheme.onSurfaceVariant;
     final initials = title.trim().isEmpty
         ? '?'
-        : title.trim().split(RegExp(r'\s+')).take(2).map((w) => w[0].toUpperCase()).join();
+        : title
+            .trim()
+            .split(RegExp(r'\s+'))
+            .take(2)
+            .map((w) => w[0].toUpperCase())
+            .join();
 
     return Card(
       elevation: 0,
@@ -129,18 +142,24 @@ class ApplicationTile extends StatelessWidget {
           children: [
             CircleAvatar(
               backgroundColor: theme.colorScheme.primaryContainer,
-              child: Text(initials, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              child: Text(initials,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(overline, style: theme.textTheme.bodySmall?.copyWith(color: muted)),
+                  Text(overline,
+                      style: theme.textTheme.bodySmall?.copyWith(color: muted)),
                   const SizedBox(height: 4),
-                  Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(title,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  Text('"${application.message}"', style: theme.textTheme.bodyMedium),
+                  Text('"${application.message}"',
+                      style: theme.textTheme.bodyMedium),
                   const SizedBox(height: 8),
                   Text('Gönderim: ${relativeTime(application.createdAt)}',
                       style: theme.textTheme.bodySmall?.copyWith(color: muted)),
@@ -154,7 +173,11 @@ class ApplicationTile extends StatelessWidget {
                 StatusBadge.application(application.status),
                 if (actions.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: actions),
+                  Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.end,
+                      children: actions),
                 ],
               ],
             ),

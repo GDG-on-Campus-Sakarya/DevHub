@@ -15,13 +15,34 @@ class CreateProjectScreen extends StatefulWidget {
 class _CreateProjectScreenState extends State<CreateProjectScreen> {
   // Tasarımdaki seçenek listeleri
   static const List<String> _technologyOptions = [
-    'C#', '.NET', 'Java', 'Python', 'JavaScript', 'TypeScript', 'Flutter', 'Dart', 'React',
-    'Node.js', 'SQL', 'Firebase', 'PostgreSQL', 'Figma', 'Docker', 'Git',
+    'C#',
+    '.NET',
+    'Java',
+    'Python',
+    'JavaScript',
+    'TypeScript',
+    'Flutter',
+    'Dart',
+    'React',
+    'Node.js',
+    'SQL',
+    'Firebase',
+    'PostgreSQL',
+    'Figma',
+    'Docker',
+    'Git',
   ];
   static const List<String> _roleOptions = [
-    'Backend Geliştirici', 'Frontend Geliştirici', 'Full-Stack Geliştirici', 'Flutter Geliştirici',
-    'Mobil Geliştirici', 'UI/UX Tasarımcısı', 'Veri Analisti', 'Yapay Zekâ/ML Mühendisi',
-    'DevOps Mühendisi', 'QA / Test Mühendisi',
+    'Backend Geliştirici',
+    'Frontend Geliştirici',
+    'Full-Stack Geliştirici',
+    'Flutter Geliştirici',
+    'Mobil Geliştirici',
+    'UI/UX Tasarımcısı',
+    'Veri Analisti',
+    'Yapay Zekâ/ML Mühendisi',
+    'DevOps Mühendisi',
+    'QA / Test Mühendisi',
   ];
 
   final _service = ProjectService();
@@ -76,7 +97,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Proje güncellendi.' : 'Proje oluşturuldu.')),
+        SnackBar(
+            content:
+                Text(_isEdit ? 'Proje güncellendi.' : 'Proje oluşturuldu.')),
       );
       Navigator.pop(context, true);
     } catch (e) {
@@ -95,7 +118,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     // Arayüzdeki erken kontrol; asıl yetki denetimi Firestore kurallarında
     String? blocked;
     if (!_service.canContribute) {
-      blocked = 'Proje oluşturmak için misafir olarak değil, hesabınla giriş yapmalısın.';
+      blocked =
+          'Proje oluşturmak için misafir olarak değil, hesabınla giriş yapmalısın.';
     } else if (_isEdit && !widget.project!.isOwner(_service.currentUserId)) {
       blocked = 'Yalnızca proje sahibi bu projeyi düzenleyebilir.';
     }
@@ -103,7 +127,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: blocked != null
-          ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(blocked)))
+          ? Center(
+              child: Padding(
+                  padding: const EdgeInsets.all(24), child: Text(blocked)))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Center(
@@ -111,7 +137,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   constraints: const BoxConstraints(maxWidth: 720),
                   child: Card(
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: _buildForm(context, title),
@@ -134,19 +161,23 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(_isEdit ? 'PROJEYİ GÜNCELLE' : 'YENİ PROJE',
-              style: theme.textTheme.labelSmall
-                  ?.copyWith(color: theme.colorScheme.primary, letterSpacing: 1.2)),
+              style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary, letterSpacing: 1.2)),
           const SizedBox(height: 6),
-          Text(title, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
+          Text(title,
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text('Fikrini paylaş ve doğru ekip arkadaşlarını bul.', style: hintStyle),
+          Text('Fikrini paylaş ve doğru ekip arkadaşlarını bul.',
+              style: hintStyle),
           const SizedBox(height: 24),
           _label(context, 'Proje adı'),
           TextFormField(
             controller: _title,
             enabled: !_saving,
             maxLength: 100,
-            decoration: const InputDecoration(hintText: 'örn. Campus Connect', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+                hintText: 'örn. Campus Connect', border: OutlineInputBorder()),
             validator: (v) => (v == null || v.trim().length < 3)
                 ? 'Proje adı en az 3 karakter olmalı.'
                 : null,
@@ -175,26 +206,34 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               initialValue: _status,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               items: const [
-                DropdownMenuItem(value: Project.statusOpen, child: Text('Başvurulara açık')),
-                DropdownMenuItem(value: Project.statusClosed, child: Text('Başvurulara kapalı')),
+                DropdownMenuItem(
+                    value: Project.statusOpen, child: Text('Başvurulara açık')),
+                DropdownMenuItem(
+                    value: Project.statusClosed,
+                    child: Text('Başvurulara kapalı')),
               ],
-              onChanged: _saving ? null : (v) => setState(() => _status = v ?? _status),
+              onChanged: _saving
+                  ? null
+                  : (v) => setState(() => _status = v ?? _status),
             ),
           ),
           const SizedBox(height: 20),
           _label(context, 'Teknolojiler'),
-          _chips({..._technologyOptions, ..._technologies}.toList(), _technologies),
+          _chips({..._technologyOptions, ..._technologies}.toList(),
+              _technologies),
           const SizedBox(height: 6),
           _showChipErrors && _technologies.isEmpty
               ? Text('En az bir teknoloji seç.', style: errorStyle)
-              : Text('Projede kullanılan bir veya daha fazla teknolojiyi seç.', style: hintStyle),
+              : Text('Projede kullanılan bir veya daha fazla teknolojiyi seç.',
+                  style: hintStyle),
           const SizedBox(height: 20),
           _label(context, 'Aranan roller'),
           _chips({..._roleOptions, ..._roles}.toList(), _roles),
           const SizedBox(height: 6),
           _showChipErrors && _roles.isEmpty
               ? Text('En az bir rol seç.', style: errorStyle)
-              : Text('Proje için aranan bir veya daha fazla rolü seç.', style: hintStyle),
+              : Text('Proje için aranan bir veya daha fazla rolü seç.',
+                  style: hintStyle),
           if (_error != null) ...[
             const SizedBox(height: 16),
             Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
@@ -211,7 +250,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               FilledButton(
                 onPressed: _saving ? null : _save,
                 child: _saving
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2))
                     : Text(_isEdit ? 'Değişiklikleri kaydet' : 'Proje oluştur'),
               ),
             ],
@@ -237,7 +279,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             selected: selected.contains(option),
             onSelected: _saving
                 ? null
-                : (on) => setState(() => on ? selected.add(option) : selected.remove(option)),
+                : (on) => setState(
+                    () => on ? selected.add(option) : selected.remove(option)),
           ),
       ],
     );

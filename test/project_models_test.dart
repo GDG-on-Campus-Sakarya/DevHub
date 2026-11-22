@@ -39,7 +39,12 @@ void main() {
     });
 
     test('sahiplik ve üyelik kontrolleri', () {
-      const p = Project(id: 'p', title: 't', description: 'd', ownerId: 'u1', memberIds: ['u1', 'u2']);
+      const p = Project(
+          id: 'p',
+          title: 't',
+          description: 'd',
+          ownerId: 'u1',
+          memberIds: ['u1', 'u2']);
       expect(p.isOwner('u1'), isTrue);
       expect(p.isOwner('u2'), isFalse);
       expect(p.isOwner(null), isFalse);

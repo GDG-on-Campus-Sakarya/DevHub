@@ -8,7 +8,8 @@ import 'status_badge.dart';
 /// [onTap] verilmezse kart proje detay ekranını açar. [onApply] verilirse
 /// "Şimdi başvur" butonu gösterilir.
 class ProjectCard extends StatelessWidget {
-  const ProjectCard({super.key, required this.project, this.onTap, this.onApply});
+  const ProjectCard(
+      {super.key, required this.project, this.onTap, this.onApply});
   final Project project;
   final VoidCallback? onTap;
   final VoidCallback? onApply;
@@ -20,7 +21,8 @@ class ProjectCard extends StatelessWidget {
     }
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ProjectDetailScreen(projectId: project.id)),
+      MaterialPageRoute(
+          builder: (_) => ProjectDetailScreen(projectId: project.id)),
     );
   }
 
@@ -52,7 +54,8 @@ class ProjectCard extends StatelessWidget {
                     project.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -72,13 +75,15 @@ class ProjectCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.group_outlined, size: 18, color: theme.colorScheme.primary),
+                        Icon(Icons.group_outlined,
+                            size: 18, color: theme.colorScheme.primary),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SectionLabel('${project.neededRoles.length} açık pozisyon'),
+                              SectionLabel(
+                                  '${project.neededRoles.length} açık pozisyon'),
                               const SizedBox(height: 4),
                               Text(
                                 project.neededRoles.join(' · '),
@@ -99,13 +104,15 @@ class ProjectCard extends StatelessWidget {
                           'Proje sahibi · ${project.ownerName.isEmpty ? '—' : project.ownerName}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                          style:
+                              theme.textTheme.bodySmall?.copyWith(color: muted),
                         ),
                       ),
                       Icon(Icons.people_outline, size: 16, color: muted),
                       const SizedBox(width: 4),
                       Text('${project.memberIds.length} üye',
-                          style: theme.textTheme.bodySmall?.copyWith(color: muted)),
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: muted)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -171,7 +178,8 @@ class ProjectCover extends StatelessWidget {
       child: Stack(
         children: [
           Center(
-            child: Icon(Icons.code_rounded, size: 48, color: textColor.withValues(alpha: 0.35)),
+            child: Icon(Icons.code_rounded,
+                size: 48, color: textColor.withValues(alpha: 0.35)),
           ),
           Align(
             alignment: Alignment.topRight,
@@ -181,7 +189,8 @@ class ProjectCover extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: project.isOpen
-                  ? const StatusBadge(label: 'Aktif ekip arıyor', color: Color(0xFF15803D))
+                  ? const StatusBadge(
+                      label: 'Aktif ekip arıyor', color: Color(0xFF15803D))
                   : StatusBadge.project(project.status),
             ),
           ),
@@ -190,7 +199,10 @@ class ProjectCover extends StatelessWidget {
               alignment: Alignment.bottomLeft,
               child: Text(
                 project.technologies.take(2).join(' · '),
-                style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                    color: textColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700),
               ),
             ),
         ],
@@ -238,7 +250,8 @@ class TagWrap extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: scheme.outlineVariant),
             ),
-            child: Text(tag, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+            child: Text(tag,
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
           ),
       ],
     );

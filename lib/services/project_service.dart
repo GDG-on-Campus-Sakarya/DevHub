@@ -49,10 +49,8 @@ class ProjectService {
   // Giriş yapan kullanıcının sahibi olduğu projeler dinlendi
   Stream<List<Project>> streamMyProjects() {
     final uid = _requireUid();
-    return _projects
-        .where('ownerId', isEqualTo: uid)
-        .snapshots()
-        .map((snap) => _sortProjects(
+    return _projects.where('ownerId', isEqualTo: uid).snapshots().map((snap) =>
+        _sortProjects(
             snap.docs.map((d) => Project.fromMap(d.data(), d.id)).toList()));
   }
 
@@ -149,7 +147,8 @@ class ProjectService {
       throw 'Lütfen bir başvuru mesajı yaz.';
     }
 
-    final ref = _applications.doc(ProjectApplication.docId(project.id, user.uid));
+    final ref =
+        _applications.doc(ProjectApplication.docId(project.id, user.uid));
     final application = ProjectApplication(
       id: ref.id,
       projectId: project.id,
@@ -187,7 +186,8 @@ class ProjectService {
   }
 
   // Kullanıcının projelerine gelen başvurular dinlendi; istenirse tek projeye süzüldü
-  Stream<List<ProjectApplication>> streamIncomingApplications({String? projectId}) {
+  Stream<List<ProjectApplication>> streamIncomingApplications(
+      {String? projectId}) {
     final uid = _requireUid();
     return _applications
         .where('ownerId', isEqualTo: uid)
@@ -250,10 +250,11 @@ class ProjectService {
     return user;
   }
 
+  // Proje ve başvuru belgelerine e-posta veya e-postadan türetilen bilgi yazılmaz
   String _displayName(User user) {
     final name = user.displayName?.trim();
     if (name != null && name.isNotEmpty) return name;
-    return user.email?.split('@').first ?? 'Kullanıcı';
+    return 'Kullanıcı';
   }
 
   // En yeni kayıt en üstte; henüz sunucu zamanı yazılmamış kayıtlar da en üstte

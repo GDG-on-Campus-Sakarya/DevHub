@@ -43,14 +43,17 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
         stream: _projects,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Projelerin yüklenemedi. Lütfen tekrar dene.'));
+            return const Center(
+                child: Text('Projelerin yüklenemedi. Lütfen tekrar dene.'));
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           final projects = snapshot.data!;
           if (projects.isEmpty) {
-            return const Center(child: Text('Henüz bir projen yok. "Proje oluştur" ile başlayabilirsin.'));
+            return const Center(
+                child: Text(
+                    'Henüz bir projen yok. "Proje oluştur" ile başlayabilirsin.'));
           }
           return ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -63,7 +66,8 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                   constraints: const BoxConstraints(maxWidth: 720),
                   child: Card(
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -73,9 +77,12 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                             children: [
                               Expanded(
                                 child: InkWell(
-                                  onTap: () => _push(ProjectDetailScreen(projectId: project.id)),
+                                  onTap: () => _push(ProjectDetailScreen(
+                                      projectId: project.id)),
                                   child: Text(project.title,
-                                      style: Theme.of(context).textTheme.titleMedium),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium),
                                 ),
                               ),
                               StatusBadge.project(project.status),
@@ -90,12 +97,14 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                             runSpacing: 8,
                             children: [
                               OutlinedButton(
-                                onPressed: () => _push(CreateProjectScreen(project: project)),
+                                onPressed: () => _push(
+                                    CreateProjectScreen(project: project)),
                                 child: const Text('Projeyi düzenle'),
                               ),
                               FilledButton(
-                                onPressed: () =>
-                                    _push(IncomingApplicationsScreen(projectId: project.id)),
+                                onPressed: () => _push(
+                                    IncomingApplicationsScreen(
+                                        projectId: project.id)),
                                 child: const Text('Başvuruları yönet'),
                               ),
                             ],

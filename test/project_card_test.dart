@@ -16,10 +16,13 @@ void main() {
   );
 
   Widget wrap(Widget child) => MaterialApp(
-        home: Scaffold(body: SingleChildScrollView(child: SizedBox(width: 400, child: child))),
+        home: Scaffold(
+            body: SingleChildScrollView(
+                child: SizedBox(width: 400, child: child))),
       );
 
-  testWidgets('kart başlık, teknoloji, rol, sahip ve üye sayısını gösterir', (tester) async {
+  testWidgets('kart başlık, teknoloji, rol, sahip ve üye sayısını gösterir',
+      (tester) async {
     await tester.pumpWidget(wrap(const ProjectCard(project: project)));
 
     expect(find.text('Study Spaces'), findsOneWidget);

@@ -32,7 +32,8 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => ProjectDetailScreen(projectId: application.projectId)),
+                  builder: (_) =>
+                      ProjectDetailScreen(projectId: application.projectId)),
             ),
             icon: const Icon(Icons.arrow_forward, size: 16),
             label: const Text('Projeyi gör'),

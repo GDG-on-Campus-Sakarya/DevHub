@@ -22,7 +22,8 @@ class ProjectApplication {
   final String id;
   final String projectId;
   final String applicantId;
-  final String ownerId; // Projenin sahibi; sorgu ve güvenlik kuralları için tutulur
+  final String
+      ownerId; // Projenin sahibi; sorgu ve güvenlik kuralları için tutulur
   final String projectTitle;
   final String applicantName;
   final String message;

@@ -14,8 +14,7 @@ class StatusBadge extends StatelessWidget {
           : StatusBadge(key: key, label: 'Başvurulara kapalı', color: _grey);
 
   // Başvuru durumu için rozet; veritabanındaki İngilizce değerler Türkçe gösterildi
-  factory StatusBadge.application(String status, {Key? key}) =>
-      StatusBadge(
+  factory StatusBadge.application(String status, {Key? key}) => StatusBadge(
         key: key,
         label: applicationStatusLabel(status),
         color: switch (status) {
