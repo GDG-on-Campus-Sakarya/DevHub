@@ -1,0 +1,152 @@
+rules_version = '2';
+
+// DevHub Firestore güvenlik kuralları.
+// Arayüzdeki kontroller yalnızca kullanıcı deneyimi içindir; yetki burada denetlenir.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Misafir (anonim) hesaplar okuyabilir ama proje açamaz / başvuramaz
+    function isContributor() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function isString(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    function isStringList(value, maxLen) {
+      return value is list && value.size() <= maxLen;
+    }
+
+    // -------------------------------------------------------------------------
+    // users — Ekip Üyesi 2 (Auth & Profile) gözden geçirmeli
+    // Belge e-posta içerdiği için yalnızca sahibi okuyabilir. Alan listesi
+    // AppUser.toMap() ile eşleşir: name, email, bio, department, skills, githubUrl.
+    // -------------------------------------------------------------------------
+    function isOptionalString(data, field, maxLen) {
+      return !(field in data) || isString(data[field], 0, maxLen);
+    }
+
+    function validUser(data) {
+      return data.keys().hasOnly(['name', 'email', 'bio', 'department', 'skills', 'githubUrl'])
+        && isString(data.name, 0, 100)
+        && isOptionalString(data, 'bio', 1000)
+        && isOptionalString(data, 'department', 200)
+        && isOptionalString(data, 'githubUrl', 300)
+        && (!('skills' in data) || isStringList(data.skills, 50))
+        // E-posta yazılıyorsa oturumdaki e-postayla aynı olmalı (sahte e-posta engellendi)
+        && (!('email' in data) || data.email == request.auth.token.email);
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow create, update: if signedIn() && request.auth.uid == userId
+        && validUser(request.resource.data);
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // projects
+    // -------------------------------------------------------------------------
+    function validProject(data) {
+      return data.keys().hasOnly(['title', 'description', 'ownerId', 'ownerName',
+                                  'technologies', 'neededRoles', 'status', 'memberIds',
+                                  'createdAt', 'updatedAt'])
+        && isString(data.title, 3, 100)
+        && isString(data.description, 10, 2000)
+        && data.ownerName is string
+        && isStringList(data.technologies, 30) && data.technologies.size() >= 1
+        && isStringList(data.neededRoles, 30)
+        && data.status in ['open', 'closed']
+        && data.memberIds is list
+        && data.updatedAt == request.time;
+    }
+
+    match /projects/{projectId} {
+      allow read: if signedIn();
+
+      // Sahip her zaman oturumdaki kullanıcıdır; başlangıçta tek üye sahiptir
+      allow create: if isContributor()
+        && validProject(request.resource.data)
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.memberIds == [request.auth.uid]
+        && request.resource.data.createdAt == request.time;
+
+      // Yalnızca sahip günceller; ownerId, ownerName ve createdAt değiştirilemez.
+      // Üye eklenecekse eklenen kişinin bu projeye kabul edilmiş başvurusu olmalı
+      // (başvuru kararıyla aynı batch içinde yazılır).
+      allow update: if isContributor()
+        && resource.data.ownerId == request.auth.uid
+        && validProject(request.resource.data)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.ownerName == resource.data.ownerName
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.memberIds.hasAll([resource.data.ownerId])
+        && memberAdditionsValid(projectId);
+
+      allow delete: if isContributor() && resource.data.ownerId == request.auth.uid;
+    }
+
+    function memberAdditionsValid(projectId) {
+      let added = request.resource.data.memberIds.removeAll(resource.data.memberIds);
+      return added.size() == 0
+        || (added.size() == 1
+            && getAfter(/databases/$(database)/documents/applications/$(projectId + '_' + added[0])).data.status == 'accepted');
+    }
+
+    // -------------------------------------------------------------------------
+    // applications — belge ID'si "{projectId}_{applicantId}"; böylece
+    // aynı kullanıcı aynı projeye ikinci kez başvuramaz (ikinci yazma bir
+    // update olur ve başvurana update izni yoktur).
+    // -------------------------------------------------------------------------
+    match /applications/{applicationId} {
+      // resource == null: henüz başvuru yoksa kullanıcı kendi sabit ID'sini sorgulayabilir
+      allow get: if signedIn()
+        && (resource == null
+            || resource.data.applicantId == request.auth.uid
+            || resource.data.ownerId == request.auth.uid);
+
+      allow list: if signedIn()
+        && (resource.data.applicantId == request.auth.uid
+            || resource.data.ownerId == request.auth.uid);
+
+      allow create: if isContributor()
+        && request.resource.data.keys().hasOnly(['projectId', 'projectTitle', 'applicantId',
+                                                 'applicantName', 'ownerId', 'message',
+                                                 'status', 'createdAt', 'updatedAt'])
+        && request.resource.data.applicantId == request.auth.uid
+        && applicationId == request.resource.data.projectId + '_' + request.auth.uid
+        && request.resource.data.status == 'pending'
+        && isString(request.resource.data.message, 1, 500)
+        && request.resource.data.applicantName is string
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && applicationMatchesProject();
+
+      // Yalnızca proje sahibi, yalnızca bekleyen başvuruya karar verebilir
+      allow update: if isContributor()
+        && resource.data.ownerId == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.status in ['accepted', 'rejected']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
+    }
+
+    // Başvuru açık bir projeye yapılmalı; sahip ve başlık projeyle eşleşmeli;
+    // sahip veya mevcut üye başvuramaz
+    function applicationMatchesProject() {
+      let project = get(/databases/$(database)/documents/projects/$(request.resource.data.projectId)).data;
+      return project.status == 'open'
+        && project.ownerId == request.resource.data.ownerId
+        && project.title == request.resource.data.projectTitle
+        && project.ownerId != request.auth.uid
+        && !(request.auth.uid in project.memberIds);
+    }
+  }
+}
