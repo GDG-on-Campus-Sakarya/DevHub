@@ -50,5 +50,6 @@ jobs:
             data/reports/flutter-service-events.jsonl
             data/reports/flutter-analyze.log
             data/reports/uygulama-uyumu.json
+            data/reports/resolved-pubspec.lock
           retention-days: 14
       # No deploy job, credentials or pinned-feature bypass.
