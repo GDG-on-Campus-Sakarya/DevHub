@@ -20,7 +20,7 @@ import 'package:devhub/services/firestore_service.dart';
 import 'package:devhub/services/project_service.dart';
 
 // Real production services, real browser plugins; all writes are local demo data.
-const demoProject = 'demo-devhub-mvp';
+const demoProject = 'demo-devhub-local-only';
 final apps = <FirebaseApp>[];
 final stores = <FirebaseFirestore>[];
 final auths = <FirebaseAuth>[];
@@ -28,7 +28,6 @@ late ProjectService owner;
 late ProjectService applicant;
 late FirestoreService ownerProfile;
 late FirestoreService applicantProfile;
-
 Future<void> client(String name) async {
   expect(Uri.base.host, anyOf('localhost', '127.0.0.1'));
   final app = await Firebase.initializeApp(name: name, options: const FirebaseOptions(
@@ -43,14 +42,12 @@ Future<void> client(String name) async {
   store.useFirestoreEmulator('127.0.0.1', 8088, automaticHostMapping: false);
   apps.add(app); stores.add(store); auths.add(auth);
 }
-
 Future<Project> create() async {
   final id = await owner.createProject(title: 'Servis Projesi',
     description: 'Yalnız yerel Emulator üzerinde sentetik servis testi.',
     technologies: ['Flutter', 'Firebase'], neededRoles: ['Backend Geliştirici']);
   return (await owner.streamProject(id).first)!;
 }
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   FirebaseCoreWeb.registerWith(webPluginRegistrar);
@@ -118,12 +115,31 @@ void main() {
     await expectLater(owner.decideApplication(a, accept: false), throwsA(anything));
   });
   test('I06 real rejection does not create membership', () async {
-    final p = await create(); await applicant.applyToProject(p, 'Red testi');
+    final p = await create();
+    await applicant.applyToProject(p, 'Red testi');
     final a = (await applicant.streamMyApplicationFor(p.id).first)!;
-    await owner.decideApplication(a, accept: false);
-    expect((await applicant.streamMyApplicationFor(p.id)
-      .firstWhere((a) => a?.status == 'rejected').timeout(const Duration(seconds: 20)))!.status, 'rejected');
-    expect((await owner.streamProject(p.id).first)!.memberIds, [auths[0].currentUser!.uid]);
+    try {
+      await owner.decideApplication(a, accept: false);
+    } catch (error, stack) {
+      fail('I06 decision write failed: $error\\n$stack');
+    }
+    ProjectApplication? rejected;
+    try {
+      rejected = await applicant.streamMyApplicationFor(p.id)
+        .firstWhere((a) => a?.status == 'rejected')
+        .timeout(const Duration(seconds: 20));
+    } catch (error, stack) {
+      fail('I06 rejected-status stream failed: $error\\n$stack');
+    }
+    expect(rejected?.status, 'rejected', reason: 'I06 status was not observed as rejected');
+    Project? finalProject;
+    try {
+      finalProject = await owner.streamProject(p.id).first;
+    } catch (error, stack) {
+      fail('I06 project stream failed: $error\\n$stack');
+    }
+    expect(finalProject?.memberIds, [auths[0].currentUser!.uid],
+      reason: 'I06 rejection must not add the applicant to membership');
   });
   test('I07 another authenticated client cannot read private profile', () async {
     await expectLater(applicantProfile.getUserProfile(auths[0].currentUser!.uid),
