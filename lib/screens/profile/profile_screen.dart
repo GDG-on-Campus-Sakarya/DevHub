@@ -4,15 +4,23 @@ import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final AuthService? authService;
+  final FirestoreService? firestoreService;
+
+  const ProfileScreen({
+    super.key,
+    this.authService,
+    this.firestoreService,
+  });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _authService = AuthService();
-  final _firestoreService = FirestoreService();
+  late final AuthService _authService = widget.authService ?? AuthService();
+  late final FirestoreService _firestoreService =
+      widget.firestoreService ?? FirestoreService();
 
   // Profil düzenleme penceresi açıldı ve güncellenen veriler kaydedildi
   Future<void> _showEditProfileDialog(
@@ -25,6 +33,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         TextEditingController(text: currentUser.skills.join(', '));
     final githubController =
         TextEditingController(text: currentUser.githubUrl ?? '');
+    final photoUrlController =
+        TextEditingController(text: currentUser.photoUrl ?? '');
 
     final formKey = GlobalKey<FormState>();
     bool isSaving = false;
@@ -105,6 +115,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           border: OutlineInputBorder(),
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: photoUrlController,
+                        decoration: const InputDecoration(
+                          labelText: 'Profil Fotoğrafı URL',
+                          hintText: 'https://...',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                       const SizedBox(height: 20),
                       FilledButton(
                         onPressed: isSaving
@@ -125,6 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   bio: bioController.text.trim(),
                                   skills: updatedSkills,
                                   githubUrl: githubController.text.trim(),
+                                  photoUrl: photoUrlController.text.trim(),
                                 );
 
                                 try {
@@ -182,6 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     bioController.dispose();
     skillsController.dispose();
     githubController.dispose();
+    photoUrlController.dispose();
   }
 
   @override
@@ -200,6 +221,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil'),
+        actions: [
+          IconButton(
+            tooltip: 'Çıkış Yap',
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await _authService.signOut();
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<AppUser?>(
         // Firestore üzerindeki kullanıcı dokümanı anlık dinlendi
@@ -214,8 +244,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               AppUser(
                 id: authUser.uid,
                 name: authUser.displayName ?? 'İsimsiz Kullanıcı',
-                email: authUser.email,
+                photoUrl: authUser.photoURL,
               );
+
+          final hasPhoto =
+              user.photoUrl != null && user.photoUrl!.isNotEmpty;
 
           return Center(
             child: SingleChildScrollView(
@@ -239,16 +272,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               radius: 40,
                               backgroundColor:
                                   Theme.of(context).colorScheme.primary,
-                              child: Text(
-                                user.name.isNotEmpty
-                                    ? user.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              backgroundImage: hasPhoto
+                                  ? NetworkImage(user.photoUrl!)
+                                  : null,
+                              child: hasPhoto
+                                  ? null
+                                  : Text(
+                                      user.name.isNotEmpty
+                                          ? user.name[0].toUpperCase()
+                                          : '?',
+                                      style: const TextStyle(
+                                        fontSize: 32,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -260,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              user.email ?? authUser.email ?? '',
+                              authUser.email ?? '',
                               style: const TextStyle(color: Colors.grey),
                             ),
                             if (user.department != null &&
