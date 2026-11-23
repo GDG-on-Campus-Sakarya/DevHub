@@ -41,7 +41,15 @@ await flutter(['pub','get']);
 const events=await flutter(['test','test/servis_entegrasyon_test.dart','--platform','chrome','--reporter','json','--no-pub','--verbose']);
 writeFileSync(resolve(data,'reports/flutter-service-events.jsonl'),events);
 const rows=events.split(/\r?\n/).flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}});
-const tests=rows.filter(e=>e.type==='testDone'&&!e.hidden),results=tests.map(e=>({name:rows.find(r=>r.type==='testStart'&&r.test.id===e.testID)?.test.name,status:e.result==='success'&&!e.skipped?'PASS':'FAIL'}));
-assert.equal(tests.length,10,'all-ten-service-scenarios-required');assert(results.every(r=>r.status==='PASS'));
-const report={checkedAt:new Date().toISOString(),scope:'Actual production Dart services through Chrome + local Firebase Auth/Firestore Emulator',projectId:'demo-devhub-mvp',sharedProjectWrites:0,tests:10,failed:0,results,files,windowsSdkAssetCompatibility:assetEvidence};
+const starts=rows.filter(e=>e.type==='testStart'&&!e.hidden),tests=rows.filter(e=>e.type==='testDone'&&!e.hidden);
+const results=starts.map(start=>{
+  const id=start.test.id,done=tests.find(e=>e.testID===id),errors=rows.filter(e=>e.type==='error'&&e.testID===id);
+  return {name:start.test.name,status:done?.result==='success'&&!done.skipped&&errors.length===0?'PASS':'FAIL',
+    ...(errors.length?{errors:errors.map(e=>e.error)}:{})};
+});
+const failed=results.filter(r=>r.status!=='PASS').length;
+assert.equal(starts.length,10,'all-ten-service-scenarios-required');
+assert.equal(tests.length,10,'each-service-test-must-finish');
+assert.equal(failed,0,'all-service-scenarios-must-pass');
+const report={checkedAt:new Date().toISOString(),scope:'Actual production Dart services through Chrome + local Firebase Auth/Firestore Emulator',projectId:'demo-devhub-mvp',sharedProjectWrites:0,tests:starts.length,failed,results,files,windowsSdkAssetCompatibility:assetEvidence};
 writeFileSync(resolve(data,'reports/flutter-servis-uyumu.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
