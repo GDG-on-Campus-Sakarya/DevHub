@@ -25,7 +25,7 @@ writeFileSync(pubspec,readFileSync(pubspec,'utf8').replace('dev_dependencies:',`
   cloud_firestore_web: 4.4.12`));
 mkdirSync(resolve(work,'test'),{recursive:true});copyFileSync(resolve(data,'tests/flutter/servis_entegrasyon_test.dart'),resolve(work,'test/servis_entegrasyon_test.dart'));
 let assetEvidence=[];
-async function flutter(args){
+async function flutter(args,{allowFailure=false}={}){
   const log=resolve(data,'reports/flutter-service-'+args[0]+'.log');writeFileSync(log,'');
   const child=spawn(process.platform==='win32'?'flutter.bat':'flutter',args,{cwd:work,shell:process.platform==='win32',env:{...process.env,CI:'true'}});
   const assets=windowsTestAssets();
@@ -35,21 +35,28 @@ async function flutter(args){
     if(process.platform==='win32')spawnSync('taskkill.exe',['/PID',String(child.pid),'/T','/F']);else child.kill('SIGKILL');
   },720000);
   const status=await new Promise((ok,bad)=>{child.on('error',bad);child.on('close',ok);}).finally(()=>{clearTimeout(timer);assets.close();assetEvidence=assets.evidence;});
-  assert.equal(status,0,'flutter-service-'+args[0]);return output;
+  if(!allowFailure)assert.equal(status,0,'flutter-service-'+args[0]);
+  return {output,status};
 }
 await flutter(['pub','get']);
-const events=await flutter(['test','test/servis_entegrasyon_test.dart','--platform','chrome','--reporter','json','--no-pub','--verbose']);
+const testRun=await flutter(['test','test/servis_entegrasyon_test.dart','--platform','chrome','--reporter','json','--no-pub','--verbose'],{allowFailure:true});
+const events=testRun.output;
 writeFileSync(resolve(data,'reports/flutter-service-events.jsonl'),events);
 const rows=events.split(/\r?\n/).flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}});
-const starts=rows.filter(e=>e.type==='testStart'&&!e.hidden),tests=rows.filter(e=>e.type==='testDone'&&!e.hidden);
+const starts=rows.filter(e=>e.type==='testStart'&&e.test?.line!==null&&e.test?.line!==undefined&&!e.test.name.startsWith('('));
+const tests=rows.filter(e=>e.type==='testDone'&&!e.hidden);
 const results=starts.map(start=>{
   const id=start.test.id,done=tests.find(e=>e.testID===id),errors=rows.filter(e=>e.type==='error'&&e.testID===id);
   return {name:start.test.name,status:done?.result==='success'&&!done.skipped&&errors.length===0?'PASS':'FAIL',
     ...(errors.length?{errors:errors.map(e=>e.error)}:{})};
 });
-const failed=results.filter(r=>r.status!=='PASS').length;
+const testFailures=results.filter(r=>r.status!=='PASS').length;
+const failed=Math.max(testFailures,testRun.status===0?0:1);
+const suiteErrors=rows.filter(e=>e.type==='error'&&(e.testID===undefined||e.testID===null)).map(e=>e.error);
+const report={checkedAt:new Date().toISOString(),scope:'Actual production Dart services through Chrome + local Firebase Auth/Firestore Emulator',projectId:'demo-devhub-mvp',sharedProjectWrites:0,tests:results.length,failed,runnerExitCode:testRun.status,suiteErrors,results,files,windowsSdkAssetCompatibility:assetEvidence};
+writeFileSync(resolve(data,'reports/flutter-servis-uyumu.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
 assert.equal(starts.length,10,'all-ten-service-scenarios-required');
 assert.equal(tests.length,10,'each-service-test-must-finish');
+assert.equal(suiteErrors.length,0,'service-suite-must-not-emit-unscoped-errors');
+assert.equal(testRun.status,0,'flutter-service-test-runner-must-exit-successfully');
 assert.equal(failed,0,'all-service-scenarios-must-pass');
-const report={checkedAt:new Date().toISOString(),scope:'Actual production Dart services through Chrome + local Firebase Auth/Firestore Emulator',projectId:'demo-devhub-mvp',sharedProjectWrites:0,tests:starts.length,failed,results,files,windowsSdkAssetCompatibility:assetEvidence};
-writeFileSync(resolve(data,'reports/flutter-servis-uyumu.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
