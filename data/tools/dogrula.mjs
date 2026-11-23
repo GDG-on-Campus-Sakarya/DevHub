@@ -42,11 +42,20 @@ const load=name=>existsSync(resolve(data,'reports',name))?JSON.parse(readFileSyn
 const service=load('flutter-servis-uyumu.json'),codec=load('flutter-uyumu.json'),application=load('uygulama-uyumu.json');
 const live=load('firebase-son-durum.json');
 const serviceFresh=service&&Date.parse(service.checkedAt)>=Date.parse(id.replace(/T(\d\d)-(\d\d)-(\d\d)/,'T$1:$2:$3'));
-const counts={unit:tests.filter(t=>t.suite==='unit'&&t.status==='PASS').length,rules:tests.filter(t=>t.suite==='emulator'&&t.status==='PASS').length,dartCodec:codec?.tests??0,dartServices:serviceFresh?service.tests:0,existingWidget:application?.existingWidgetSmoke??0};
+const serviceResults=serviceFresh&&Array.isArray(service.results)?service.results:[];
+for(const result of serviceResults){
+  tests.push({kind:'case',name:result.name,status:result.status,error:result.errors?.join('; ')??null,suite:'dart-services'});
+}
+const counts={unit:tests.filter(t=>t.suite==='unit'&&t.status==='PASS').length,rules:tests.filter(t=>t.suite==='emulator'&&t.status==='PASS').length,dartCodec:codec?.tests??0,dartServices:serviceResults.length,existingWidget:application?.existingWidgetSmoke??0};
+const nodeFailures=tests.filter(t=>['unit','emulator'].includes(t.suite)&&t.status==='FAIL').length;
+const serviceFailures=serviceResults.filter(t=>t.status!=='PASS').length;
+const serviceRunnerFailure=serviceFresh&&service.runnerExitCode!==0?1:0;
+const failed=nodeFailures+Math.max(serviceFailures,serviceRunnerFailure);
+const nodeTests=tests.filter(t=>['unit','emulator'].includes(t.suite)&&t.status==='PASS').length;
 const report={runId:id,checkedAt:new Date().toISOString(),mode:'integrated-working-tree',sourceHash,sourceUnchanged:!changed,steps,tests,localTestCounts:counts,totalLocalTests:Object.values(counts).reduce((a,b)=>a+b,0),
-  nodeTests:tests.filter(t=>t.status==='PASS').length,failed:tests.filter(t=>t.status==='FAIL').length,
+  nodeTests,failed,
   requiredSecurityCasesCovered:coverage,
-  result:steps.length===6&&steps.every(s=>s.status==='PASS')&&!changed&&coverage&&counts.unit>=41&&serviceFresh&&counts.dartServices===10&&tests.every(t=>t.status==='PASS')?'PASS':'FAIL',
+  result:steps.length===6&&steps.every(s=>s.status==='PASS')&&!changed&&coverage&&counts.unit>=41&&serviceFresh&&counts.dartServices===10&&service.failed===0&&service.runnerExitCode===0&&tests.every(t=>t.status==='PASS')?'PASS':'FAIL',
   sharedProjectId:'devhub-34108',
   remoteEvidence:live?{checkedAt:live.checkedAt,projectId:live.projectId,summary:live.summary,performedByThisCommand:false,report:'firebase-son-durum.json',sha256:createHash('sha256').update(readFileSync(resolve(data,'reports/firebase-son-durum.json'))).digest('hex')}:null,
   accountAccess:live?.checks.project?.status==='PASS'?'VERIFIED_AT_ATTACHED_CHECK_TIME':'NOT_CHECKED_BY_LOCAL_VERIFY',
