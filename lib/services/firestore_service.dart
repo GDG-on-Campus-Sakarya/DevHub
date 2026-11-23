@@ -27,8 +27,32 @@ class FirestoreService {
     return AppUser.fromMap(doc.data()!, doc.id);
   }
 
-  // Kullanıcı profil verisi merge seçeneğiyle diğer alanlar korunarak kaydedildi
+  /// Yeni kayıt olan kullanıcı için `users/{uid}` belgesi yoksa oluşturur.
+  /// Belge zaten varsa mevcut profil bilgilerini ezmeden çıkar.
+  Future<void> createUserProfileIfMissing(AppUser user) async {
+    final docRef = _userDoc(user.id);
+    final snapshot = await docRef.get();
+    if (snapshot.exists) return;
+
+    final data = user.toMap()
+      ..['createdAt'] = FieldValue.serverTimestamp()
+      ..['updatedAt'] = FieldValue.serverTimestamp();
+
+    await docRef.set(data, SetOptions(merge: true));
+  }
+
+  /// Kullanıcı profil verisini merge seçeneğiyle mevcut alanları koruyarak kaydeder.
   Future<void> saveUserProfile(AppUser user) async {
-    await _userDoc(user.id).set(user.toMap(), SetOptions(merge: true));
+    final docRef = _userDoc(user.id);
+    final data = user.toMap()..['updatedAt'] = FieldValue.serverTimestamp();
+
+    if (user.createdAt == null) {
+      final snapshot = await docRef.get();
+      if (!snapshot.exists || snapshot.data()?['createdAt'] == null) {
+        data['createdAt'] = FieldValue.serverTimestamp();
+      }
+    }
+
+    await docRef.set(data, SetOptions(merge: true));
   }
 }
