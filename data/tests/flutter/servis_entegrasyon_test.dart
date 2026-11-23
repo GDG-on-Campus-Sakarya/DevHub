@@ -16,11 +16,12 @@ import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:cloud_firestore_web/cloud_firestore_web.dart';
 import 'package:devhub/models/app_user.dart';
 import 'package:devhub/models/project.dart';
+import 'package:devhub/models/project_application.dart';
 import 'package:devhub/services/firestore_service.dart';
 import 'package:devhub/services/project_service.dart';
 
 // Real production services, real browser plugins; all writes are local demo data.
-const demoProject = 'demo-devhub-local-only';
+const demoProject = 'demo-devhub-mvp';
 final apps = <FirebaseApp>[];
 final stores = <FirebaseFirestore>[];
 final auths = <FirebaseAuth>[];
