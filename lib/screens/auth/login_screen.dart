@@ -4,7 +4,9 @@ import '../../services/auth_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthService? authService;
+
+  const LoginScreen({super.key, this.authService});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -18,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  final _authService = AuthService();
+  late final AuthService _authService = widget.authService ?? AuthService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -320,7 +322,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Giriş Yap', style: TextStyle(fontSize: 16)),
+                          : const Text('Giriş Yap',
+                              style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 20),
 
@@ -345,7 +348,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Google ile giriş butonu
                       if (AuthConfig.enableGoogle) ...[
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.g_mobiledata, size: 28, color: Colors.red),
+                          icon: const Icon(Icons.g_mobiledata,
+                              size: 28, color: Colors.red),
                           label: const Text('Google ile Giriş Yap'),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -358,7 +362,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // GitHub ile giriş butonu
                       if (AuthConfig.enableGithub) ...[
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.code, size: 22, color: Colors.black87),
+                          icon: const Icon(Icons.code,
+                              size: 22, color: Colors.black87),
                           label: const Text('GitHub ile Giriş Yap'),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -371,7 +376,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Microsoft ile giriş butonu
                       if (AuthConfig.enableMicrosoft) ...[
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.window, size: 22, color: Color(0xFF00A4EF)),
+                          icon: const Icon(Icons.window,
+                              size: 22, color: Color(0xFF00A4EF)),
                           label: const Text('Microsoft ile Giriş Yap'),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -384,7 +390,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // LinkedIn ile giriş butonu
                       if (AuthConfig.enableLinkedin) ...[
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.business, size: 22, color: Color(0xFF0A66C2)),
+                          icon: const Icon(Icons.business,
+                              size: 22, color: Color(0xFF0A66C2)),
                           label: const Text('LinkedIn ile Giriş Yap'),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -397,7 +404,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Misafir olarak giriş butonu
                       if (AuthConfig.enableGuest) ...[
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.person_outline, size: 22, color: Colors.blueGrey),
+                          icon: const Icon(Icons.person_outline,
+                              size: 22, color: Colors.blueGrey),
                           label: const Text('Misafir Olarak Devam Et'),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),

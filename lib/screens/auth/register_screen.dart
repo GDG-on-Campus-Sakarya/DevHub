@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final AuthService? authService;
+
+  const RegisterScreen({super.key, this.authService});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -18,7 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  final _authService = AuthService();
+  late final AuthService _authService = widget.authService ?? AuthService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -208,7 +210,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -240,7 +243,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Kayıt Ol', style: TextStyle(fontSize: 16)),
+                          : const Text('Kayıt Ol',
+                              style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 16),
 
