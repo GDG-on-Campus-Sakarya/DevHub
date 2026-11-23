@@ -1,0 +1,24 @@
+name: DevHub Flutter
+on:
+  pull_request:
+    paths: ['lib/**', 'test/**', 'web/**', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml', '.github/workflows/flutter.yml']
+  push:
+    branches: [main]
+    paths: ['lib/**', 'test/**', 'web/**', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml', '.github/workflows/flutter.yml']
+permissions:
+  contents: read
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - run: flutter build web --release

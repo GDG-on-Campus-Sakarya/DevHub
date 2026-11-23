@@ -1,0 +1,51 @@
+{
+  "queries": [
+    {
+      "id": "Q01",
+      "method": "streamOpenProjects",
+      "collection": "projects",
+      "filter": "status",
+      "operator": "==",
+      "value": "open",
+      "sort": "client:createdAt desc"
+    },
+    {
+      "id": "Q02",
+      "method": "streamMyProjects",
+      "collection": "projects",
+      "filter": "ownerId",
+      "operator": "==",
+      "value": "auth.uid",
+      "sort": "client:createdAt desc"
+    },
+    {
+      "id": "Q03",
+      "method": "streamMyApplications",
+      "collection": "applications",
+      "filter": "applicantId",
+      "operator": "==",
+      "value": "auth.uid",
+      "sort": "client:createdAt desc"
+    },
+    {
+      "id": "Q04",
+      "method": "streamIncomingApplications",
+      "collection": "applications",
+      "filter": "ownerId",
+      "operator": "==",
+      "value": "auth.uid",
+      "sort": "client:createdAt desc",
+      "projectId": "client filter"
+    }
+  ],
+  "documentReads": [
+    "users/{auth.uid}",
+    "projects/{projectId}",
+    "applications/{projectId}_{auth.uid}"
+  ],
+  "compositeIndexesRequiredByObservedQueries": 0,
+  "realFirestoreIndexValidation": "PASS_QUERY_SHAPES_VIA_IAM_AGGREGATE",
+  "reason": "Only single equality filters; server orderBy is absent. Default single-field indexes are assumed, not remotely verified.",
+  "checkedAt": "2026-11-07T16:27:13.971Z",
+  "applicationRulesOnSharedProject": "DENY_ALL_NOT_DEPLOYED"
+}

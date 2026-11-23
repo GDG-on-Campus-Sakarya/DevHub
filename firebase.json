@@ -1,1 +1,32 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"devhub-34108","configurations":{"web":"1:903757169979:web:8db8d1b1d5bed7b6a1631e"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "devhub-34108",
+          "configurations": {
+            "web": "1:903757169979:web:8db8d1b1d5bed7b6a1631e"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "data/firestore/firestore.rules",
+    "indexes": "data/firestore/firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

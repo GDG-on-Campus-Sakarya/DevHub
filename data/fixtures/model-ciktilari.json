@@ -1,0 +1,59 @@
+[
+  {
+    "collection": "users",
+    "id": "alice",
+    "data": {
+      "name": "Ada",
+      "email": "alice@example.invalid",
+      "bio": "Veri geliştirici",
+      "department": "Bilişim",
+      "skills": [
+        "Dart",
+        "C#"
+      ],
+      "githubUrl": "https://github.com/example"
+    }
+  },
+  {
+    "collection": "users",
+    "id": "minimal",
+    "data": {
+      "name": "Ad",
+      "skills": []
+    }
+  },
+  {
+    "collection": "projects",
+    "id": "AbCdEfGhIjKlMnOpQrSt",
+    "data": {
+      "title": "DevHub",
+      "description": "Öğrenci proje geliştirme platformu",
+      "ownerId": "alice",
+      "ownerName": "Ada",
+      "technologies": [
+        "Flutter",
+        "Firebase"
+      ],
+      "neededRoles": [
+        "Backend Geliştirici"
+      ],
+      "status": "open",
+      "memberIds": [
+        "alice"
+      ]
+    }
+  },
+  {
+    "collection": "applications",
+    "id": "AbCdEfGhIjKlMnOpQrSt_bob",
+    "data": {
+      "projectId": "AbCdEfGhIjKlMnOpQrSt",
+      "applicantId": "bob",
+      "ownerId": "alice",
+      "projectTitle": "DevHub",
+      "applicantName": "Bora",
+      "message": "Katılmak istiyorum.",
+      "status": "pending"
+    }
+  }
+]
