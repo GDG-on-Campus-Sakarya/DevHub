@@ -48,9 +48,8 @@ class AuthService {
         await _firestore.createUserProfileIfMissing(
           AppUser(
             id: user.uid,
-            name: trimmedName.isNotEmpty
-                ? trimmedName
-                : (user.displayName ?? ''),
+            name:
+                trimmedName.isNotEmpty ? trimmedName : (user.displayName ?? ''),
             photoUrl: user.photoURL,
           ),
         );

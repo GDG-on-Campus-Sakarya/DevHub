@@ -247,8 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 photoUrl: authUser.photoURL,
               );
 
-          final hasPhoto =
-              user.photoUrl != null && user.photoUrl!.isNotEmpty;
+          final hasPhoto = user.photoUrl != null && user.photoUrl!.isNotEmpty;
 
           return Center(
             child: SingleChildScrollView(
@@ -261,9 +260,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // Profil başlık kartı
                     Card(
                       elevation: 0,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest,
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Column(
@@ -339,9 +337,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ? user.bio!
                                   : 'Henüz bir biyografi eklenmedi.',
                               style: TextStyle(
-                                color: (user.bio != null && user.bio!.isNotEmpty)
-                                    ? Colors.black87
-                                    : Colors.grey,
+                                color:
+                                    (user.bio != null && user.bio!.isNotEmpty)
+                                        ? Colors.black87
+                                        : Colors.grey,
                               ),
                             ),
                           ],
