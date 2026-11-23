@@ -1,0 +1,125 @@
+rules_version = '2';
+// Tek Rules kaynagi. Kaynak kopyasi veya ikinci kurallar dosyasi tutmayin.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function contributor() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    function text(v, low, high) { return v is string && v.size() >= low && v.size() <= high; }
+    function normalized(v, low, high) {
+      return text(v,low,high) && v.matches("^[^\\x09-\\x0D\\x20\\x{0085}\\x{00A0}\\x{1680}\\x{2000}-\\x{200A}\\x{2028}\\x{2029}\\x{202F}\\x{205F}\\x{3000}\\x{FEFF}](?:[\\s\\S]*[^\\x09-\\x0D\\x20\\x{0085}\\x{00A0}\\x{1680}\\x{2000}-\\x{200A}\\x{2028}\\x{2029}\\x{202F}\\x{205F}\\x{3000}\\x{FEFF}])?$");
+    }
+    function optionalText(d, key, high) { return !(key in d) || text(d[key], 0, high); }
+    function labels(v, high) {
+      let n = v.size();
+      let joined = v.join('\n');
+      return v is list && n <= high
+        && (n == 0 || (joined.matches('^[^\\x00-\\x1F\\x7F]{0,200}(\\n[^\\x00-\\x1F\\x7F]{0,200})*$') && v == joined.split('\n')));
+    }
+    function validUser(d) {
+      return d.keys().hasAll(['name','skills'])
+        && d.keys().hasOnly(['name','email','bio','department','skills','githubUrl'])
+        && text(d.name,0,100) && labels(d.skills,50)
+        && optionalText(d,'email',320) && optionalText(d,'bio',1000)
+        && optionalText(d,'department',200) && optionalText(d,'githubUrl',300)
+        && (!('email' in d) || d.email == request.auth.token.get('email',null));
+    }
+    match /users/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, delete: if false;
+      allow create, update: if signedIn() && request.auth.uid == uid && validUser(request.resource.data);
+    }
+    function validProject(d) {
+      return d.keys().hasAll(['title','description','ownerId','ownerName','technologies','neededRoles','status','memberIds','createdAt','updatedAt'])
+        && d.keys().hasOnly(['title','description','ownerId','ownerName','technologies','neededRoles','status','memberIds','createdAt','updatedAt'])
+        && normalized(d.title,3,100)
+        && normalized(d.description,10,2000)
+        && text(d.ownerId,1,128) && text(d.ownerName,0,200)
+        && labels(d.technologies,30) && labels(d.neededRoles,30)
+        && d.status in ['open','closed'] && d.memberIds is list
+        && d.memberIds.size() == d.memberIds.toSet().size()
+        && d.createdAt is timestamp && d.updatedAt == request.time && d.updatedAt >= d.createdAt;
+    }
+    function projectBefore(id) { return get(/databases/$(database)/documents/projects/$(id)).data; }
+    function projectAfter(id) { return getAfter(/databases/$(database)/documents/projects/$(id)).data; }
+    function applicationBefore(id,uid) { return get(/databases/$(database)/documents/applications/$(id + '_' + uid)).data; }
+    function applicationAfter(id,uid) { return getAfter(/databases/$(database)/documents/applications/$(id + '_' + uid)).data; }
+    function addAcceptedMember(id,old,next) {
+      let uid = next.memberIds[next.memberIds.size()-1];
+      let before = applicationBefore(id,uid);
+      let after = applicationAfter(id,uid);
+      return text(uid,1,128) && !(uid in old.memberIds)
+        && next.memberIds == old.memberIds.concat([uid])
+        && next.diff(old).affectedKeys().hasOnly(['memberIds','updatedAt'])
+        && before.status == 'pending' && before.projectId == id
+        && before.applicantId == uid && before.ownerId == old.ownerId
+        && after.status == 'accepted' && after.updatedAt == request.time;
+    }
+    match /projects/{id} {
+      allow get, list: if signedIn();
+      allow delete: if false;
+      allow create: if contributor() && id.matches('^[A-Za-z0-9]{20}$')
+        && validProject(request.resource.data)
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.memberIds == [request.auth.uid]
+        && request.resource.data.createdAt == request.time;
+      allow update: if contributor() && resource.data.ownerId == request.auth.uid
+        && validProject(request.resource.data)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.ownerName == resource.data.ownerName
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title','description','technologies','neededRoles','status','updatedAt'])
+          || addAcceptedMember(id,resource.data,request.resource.data));
+    }
+    function validApplication(d) {
+      return d.keys().hasAll(['projectId','applicantId','ownerId','projectTitle','applicantName','message','status','createdAt','updatedAt'])
+        && d.keys().hasOnly(['projectId','applicantId','ownerId','projectTitle','applicantName','message','status','createdAt','updatedAt'])
+        && d.projectId is string && d.projectId.matches('^[A-Za-z0-9]{20}$')
+        && text(d.applicantId,1,128) && text(d.ownerId,1,128)
+        && normalized(d.projectTitle,3,100)
+        && text(d.applicantName,0,200) && normalized(d.message,1,500)
+        && d.status in ['pending','accepted','rejected']
+        && d.createdAt is timestamp && d.updatedAt == request.time && d.updatedAt >= d.createdAt;
+    }
+    function matchesLiveProject(d) {
+      let p = projectBefore(d.projectId);
+      let after = projectAfter(d.projectId);
+      return p.status == 'open' && after.status == 'open'
+        && p.ownerId == d.ownerId && p.title == d.projectTitle
+        && p.ownerId != request.auth.uid && !(request.auth.uid in p.memberIds)
+        && !(request.auth.uid in after.memberIds);
+    }
+    function validDecision(old,next) {
+      let before = projectBefore(old.projectId);
+      let after = projectAfter(old.projectId);
+      return before.ownerId == request.auth.uid && after.ownerId == request.auth.uid
+        && !(old.applicantId in before.memberIds)
+        && (next.status == 'accepted'
+          ? after.memberIds == before.memberIds.concat([old.applicantId])
+          : !(old.applicantId in after.memberIds));
+    }
+    function ownMissingApplication(id) {
+      let prefix = id.split('_')[0];
+      return prefix.matches('^[A-Za-z0-9]{20}$') && id == prefix + '_' + request.auth.uid;
+    }
+    match /applications/{id} {
+      allow get: if signedIn() && (resource == null ? ownMissingApplication(id)
+        : resource.data.applicantId == request.auth.uid || resource.data.ownerId == request.auth.uid);
+      allow list: if signedIn() && (resource.data.applicantId == request.auth.uid || resource.data.ownerId == request.auth.uid);
+      allow create: if contributor() && validApplication(request.resource.data)
+        && id == request.resource.data.projectId + '_' + request.auth.uid
+        && request.resource.data.applicantId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time && matchesLiveProject(request.resource.data);
+      allow update: if contributor() && validApplication(request.resource.data)
+        && resource.data.ownerId == request.auth.uid && resource.data.status == 'pending'
+        && request.resource.data.status in ['accepted','rejected']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt'])
+        && validDecision(resource.data,request.resource.data);
+      allow delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

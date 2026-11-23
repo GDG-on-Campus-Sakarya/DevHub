@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "users codec 2.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "skills"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    "email": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 0,
+        "max": 320
+      }
+    },
+    "bio": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 0,
+        "max": 1000
+      }
+    },
+    "department": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 0,
+        "max": 200
+      }
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 50,
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\u0000-\\u001f\\u007f]*$",
+        "maxLength": 200
+      }
+    },
+    "githubUrl": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 0,
+        "max": 300
+      }
+    }
+  }
+}

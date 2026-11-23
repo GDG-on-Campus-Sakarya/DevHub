@@ -1,0 +1,45 @@
+{
+  "checkedOn": "2026-11-23",
+  "main": "125b11119cfb783f52c76ad86aa9e1df92b61c9d",
+  "projectId": "devhub-34108",
+  "files": [
+    {
+      "path": "lib/models/app_user.dart",
+      "commit": "1c217f007329fb0ac024b5ff91b8bbe3f4a090c7",
+      "sha256": "ea7ab1bdaea4bbfd76b2e7aa4a7abc22c624be7b5a2f96c0764785cdd27f05cf",
+      "url": "https://github.com/GDG-on-Campus-Sakarya/DevHub/blob/1c217f007329fb0ac024b5ff91b8bbe3f4a090c7/lib/models/app_user.dart"
+    },
+    {
+      "path": "lib/models/project.dart",
+      "commit": "8fdcf0db2ad879d08d64ac6602f63a789c0a5182",
+      "sha256": "482eb9e4fd3ed86a5621f4f9edbd2e60b5be28969cb48cc12df8bc8c6f785420",
+      "url": "https://github.com/GDG-on-Campus-Sakarya/DevHub/blob/8fdcf0db2ad879d08d64ac6602f63a789c0a5182/lib/models/project.dart"
+    },
+    {
+      "path": "lib/models/project_application.dart",
+      "commit": "8fdcf0db2ad879d08d64ac6602f63a789c0a5182",
+      "sha256": "6dad73eb079cb223410d9a72a4050802ff3622ef4077cef89e6b5812776f2315",
+      "url": "https://github.com/GDG-on-Campus-Sakarya/DevHub/blob/8fdcf0db2ad879d08d64ac6602f63a789c0a5182/lib/models/project_application.dart"
+    },
+    {
+      "path": "lib/services/firestore_service.dart",
+      "commit": "1c217f007329fb0ac024b5ff91b8bbe3f4a090c7",
+      "sha256": "271b4d0c370cd0b68c9218967c0bfffa27cdc6ef57bf4766d20272ac3ed95c84",
+      "url": "https://github.com/GDG-on-Campus-Sakarya/DevHub/blob/1c217f007329fb0ac024b5ff91b8bbe3f4a090c7/lib/services/firestore_service.dart"
+    },
+    {
+      "path": "lib/services/project_service.dart",
+      "commit": "cf03b0c548aac6d62586c3ad8cfe82fe49669796",
+      "sha256": "99d0a0fb0557cd535b8de949e1d375fb3dff40bdb78b4c5566f0d97cd89e01cb",
+      "url": "https://github.com/GDG-on-Campus-Sakarya/DevHub/blob/cf03b0c548aac6d62586c3ad8cfe82fe49669796/lib/services/project_service.dart",
+      "note": "PR #2 current head; no email-local-part display-name fallback."
+    }
+  ],
+  "integration": {
+    "mode": "phase-1-integrated-worktree",
+    "baseMain": "125b11119cfb783f52c76ad86aa9e1df92b61c9d",
+    "sourceFilesUnmodified": false,
+    "remoteMerged": false,
+    "note": "Current data contracts/models/services are integrated; ProjectService was reconciled to PR #2 head. AuthService and screens include first-phase integration fixes."
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "applications codec 2.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "projectId",
+    "applicantId",
+    "ownerId",
+    "projectTitle",
+    "applicantName",
+    "message",
+    "status"
+  ],
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]{20}$"
+    },
+    "applicantId": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 1,
+        "max": 128
+      }
+    },
+    "ownerId": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 1,
+        "max": 128
+      }
+    },
+    "projectTitle": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 3,
+        "max": 100
+      },
+      "x-trim": true
+    },
+    "applicantName": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 0,
+        "max": 200
+      }
+    },
+    "message": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 1,
+        "max": 500
+      },
+      "x-trim": true
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected"
+      ]
+    }
+  }
+}

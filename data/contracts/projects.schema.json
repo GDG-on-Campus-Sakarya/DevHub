@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "projects codec 2.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "description",
+    "ownerId",
+    "ownerName",
+    "technologies",
+    "neededRoles",
+    "status",
+    "memberIds"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 3,
+        "max": 100
+      },
+      "x-trim": true
+    },
+    "description": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 10,
+        "max": 2000
+      },
+      "x-trim": true
+    },
+    "ownerId": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 1,
+        "max": 128
+      }
+    },
+    "ownerName": {
+      "type": "string",
+      "x-codeUnits": {
+        "min": 0,
+        "max": 200
+      }
+    },
+    "technologies": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 30,
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\u0000-\\u001f\\u007f]*$",
+        "maxLength": 200
+      }
+    },
+    "neededRoles": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 30,
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\u0000-\\u001f\\u007f]*$",
+        "maxLength": 200
+      }
+    },
+    "status": {
+      "enum": [
+        "open",
+        "closed"
+      ]
+    },
+    "memberIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "x-codeUnits": {
+          "min": 1,
+          "max": 128
+        }
+      },
+      "uniqueItems": true,
+      "minItems": 0
+    }
+  }
+}

@@ -1,0 +1,47 @@
+import {spawn,spawnSync} from 'node:child_process';
+import {readFileSync,writeFileSync,mkdirSync,copyFileSync,appendFileSync} from 'node:fs';
+import {resolve,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+import {windowsTestAssets} from './lib/windows-test-assets.mjs';
+const data=resolve(dirname(fileURLToPath(import.meta.url)),'..'),repo=resolve(data,'..');
+assert.equal(process.env.GCLOUD_PROJECT,'demo-devhub-mvp');
+assert.equal(process.env.FIRESTORE_EMULATOR_HOST,'127.0.0.1:8088');
+assert.equal(process.env.FIREBASE_AUTH_EMULATOR_HOST,'127.0.0.1:9098');
+const work=resolve(data,'reports/flutter-service');mkdirSync(work,{recursive:true});
+const registry=JSON.parse(readFileSync(resolve(data,'validation/kaynaklar.json'))),files=[];
+for(const row of registry.files){
+  const raw=readFileSync(resolve(repo,row.path));const dst=resolve(work,row.path);mkdirSync(dirname(dst),{recursive:true});writeFileSync(dst,raw);
+  files.push({path:row.path,sha256:createHash('sha256').update(raw).digest('hex')});
+}
+for(const name of ['pubspec.yaml','pubspec.lock'])copyFileSync(resolve(repo,name),resolve(work,name));
+const pubspec=resolve(work,'pubspec.yaml');
+writeFileSync(pubspec,readFileSync(pubspec,'utf8').replace('dev_dependencies:',`dev_dependencies:
+  flutter_web_plugins:
+    sdk: flutter
+  firebase_core_web: 2.24.1
+  firebase_auth_web: 5.15.3
+  cloud_firestore_web: 4.4.12`));
+mkdirSync(resolve(work,'test'),{recursive:true});copyFileSync(resolve(data,'tests/flutter/servis_entegrasyon_test.dart'),resolve(work,'test/servis_entegrasyon_test.dart'));
+let assetEvidence=[];
+async function flutter(args){
+  const log=resolve(data,'reports/flutter-service-'+args[0]+'.log');writeFileSync(log,'');
+  const child=spawn(process.platform==='win32'?'flutter.bat':'flutter',args,{cwd:work,shell:process.platform==='win32',env:{...process.env,CI:'true'}});
+  const assets=windowsTestAssets();
+  let output='';child.stdout.on('data',chunk=>{assets.observe(chunk);output+=chunk;appendFileSync(log,chunk);process.stdout.write(chunk);});
+  child.stderr.on('data',chunk=>{assets.observe(chunk);appendFileSync(log,chunk);process.stderr.write(chunk);});
+  const timer=setTimeout(()=>{
+    if(process.platform==='win32')spawnSync('taskkill.exe',['/PID',String(child.pid),'/T','/F']);else child.kill('SIGKILL');
+  },720000);
+  const status=await new Promise((ok,bad)=>{child.on('error',bad);child.on('close',ok);}).finally(()=>{clearTimeout(timer);assets.close();assetEvidence=assets.evidence;});
+  assert.equal(status,0,'flutter-service-'+args[0]);return output;
+}
+await flutter(['pub','get']);
+const events=await flutter(['test','test/servis_entegrasyon_test.dart','--platform','chrome','--reporter','json','--no-pub','--verbose']);
+writeFileSync(resolve(data,'reports/flutter-service-events.jsonl'),events);
+const rows=events.split(/\r?\n/).flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}});
+const tests=rows.filter(e=>e.type==='testDone'&&!e.hidden),results=tests.map(e=>({name:rows.find(r=>r.type==='testStart'&&r.test.id===e.testID)?.test.name,status:e.result==='success'&&!e.skipped?'PASS':'FAIL'}));
+assert.equal(tests.length,10,'all-ten-service-scenarios-required');assert(results.every(r=>r.status==='PASS'));
+const report={checkedAt:new Date().toISOString(),scope:'Actual production Dart services through Chrome + local Firebase Auth/Firestore Emulator',projectId:'demo-devhub-mvp',sharedProjectWrites:0,tests:10,failed:0,results,files,windowsSdkAssetCompatibility:assetEvidence};
+writeFileSync(resolve(data,'reports/flutter-servis-uyumu.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));

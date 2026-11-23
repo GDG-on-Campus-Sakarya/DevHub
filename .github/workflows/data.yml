@@ -1,0 +1,54 @@
+name: DevHub Data
+on:
+  pull_request:
+    paths: ['lib/**', 'test/**', 'data/**', 'web/**', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml', 'firebase.json', '.firebaserc', '.github/workflows/**']
+  push:
+    branches: [main]
+    paths: ['lib/**', 'test/**', 'data/**', 'web/**', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml', 'firebase.json', '.firebaserc', '.github/workflows/**']
+permissions:
+  contents: read
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: data
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: data/package-lock.json
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Flutter SDK
+        run: |
+          git init "$RUNNER_TEMP/flutter-sdk"
+          git -C "$RUNNER_TEMP/flutter-sdk" remote add origin https://github.com/flutter/flutter.git
+          git -C "$RUNNER_TEMP/flutter-sdk" fetch --depth=1 origin abaf9c523780a608bd46686fd5e53740a07077f8
+          git -C "$RUNNER_TEMP/flutter-sdk" checkout --detach FETCH_HEAD
+          echo "$RUNNER_TEMP/flutter-sdk/bin" >> "$GITHUB_PATH"
+      - run: flutter doctor -v
+      - run: npm ci --ignore-scripts
+      - run: npm run verify
+      - run: npm audit --audit-level=moderate
+      - name: Yerel test kanitlari
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: devhub-data-evidence
+          path: |
+            data/reports/*/sonuc.json
+            data/reports/*/*.log
+            data/reports/flutter-uyumu.json
+            data/reports/flutter-events.jsonl
+            data/reports/flutter-servis-uyumu.json
+            data/reports/flutter-service-events.jsonl
+            data/reports/flutter-analyze.log
+            data/reports/uygulama-uyumu.json
+          retention-days: 14
+      # No deploy job, credentials or pinned-feature bypass.

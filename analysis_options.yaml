@@ -1,6 +1,8 @@
 analyzer:
   exclude:
     - build/**
+    - data/node_modules/**
+    - data/reports/**
     - web/**
 include: package:flutter_lints/flutter.yaml
 linter:

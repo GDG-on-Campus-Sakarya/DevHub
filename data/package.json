@@ -1,0 +1,36 @@
+{
+  "name": "devhub-data",
+  "version": "2.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "validate": "node validation/paket.mjs",
+    "test": "node --test tests/unit/*.test.mjs",
+    "test:emulator": "firebase emulators:exec --config firebase.json --project demo-devhub-mvp --only auth,firestore \"node tools/emulator-testlerini-calistir.mjs\"",
+    "test:flutter": "node tools/flutter-uyumunu-calistir.mjs",
+    "verify": "node tools/dogrula.mjs",
+    "firebase:inspect": "node operations/firebase-durumunu-incele.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "firebase-admin": "14.5.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.1.0",
+    "firebase-tools": "15.34.1"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "1.14.6",
+    "@opentelemetry/core": "2.8.0",
+    "gaxios": {
+      "uuid": "11.1.1"
+    },
+    "glob": "14.0.2",
+    "minimatch": "11.0.1"
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "version": "2.1.0",
+  "checkedAt": "2026-11-07T16:27:13.971Z",
+  "project": {
+    "projectId": "devhub-34108",
+    "projectNumber": "903757169979",
+    "displayName": "DevHub",
+    "state": "ACTIVE"
+  },
+  "database": {
+    "name": "projects/devhub-34108/databases/(default)",
+    "locationId": "eur3",
+    "type": "FIRESTORE_NATIVE",
+    "databaseEdition": "STANDARD",
+    "deleteProtectionState": "DELETE_PROTECTION_DISABLED",
+    "pointInTimeRecoveryEnablement": "POINT_IN_TIME_RECOVERY_DISABLED"
+  },
+  "sdkConfig": {
+    "projectIdMatches": true,
+    "appIdMatches": true,
+    "apiKeyMatches": true,
+    "valuesExported": false
+  },
+  "observedRules": {
+    "name": "projects/devhub-34108/releases/cloud.firestore",
+    "rulesetName": "projects/devhub-34108/rulesets/7af89227-820b-4f51-a70e-a986312ffe90",
+    "updateTime": "2026-10-23T16:15:56.987046Z",
+    "sourceSha256": "ecf30f940747dcc3c5ba4993093e9a11ac9fc5df7e14b2a1512d2446923d84eb",
+    "policy": "DENY_ALL"
+  },
+  "indexes": {
+    "composites": 0,
+    "customFieldOverrides": 0,
+    "defaultFieldIndexConfig": [
+      {
+        "indexes": [
+          {
+            "queryScope": "COLLECTION",
+            "fields": [
+              {
+                "fieldPath": "*",
+                "order": "ASCENDING"
+              }
+            ],
+            "state": "READY"
+          },
+          {
+            "queryScope": "COLLECTION",
+            "fields": [
+              {
+                "fieldPath": "*",
+                "order": "DESCENDING"
+              }
+            ],
+            "state": "READY"
+          },
+          {
+            "queryScope": "COLLECTION",
+            "fields": [
+              {
+                "fieldPath": "*",
+                "arrayConfig": "CONTAINS"
+              }
+            ],
+            "state": "READY"
+          }
+        ]
+      }
+    ]
+  },
+  "collections": {
+    "ids": [],
+    "complete": true
+  },
+  "auth": {
+    "authorizedDomains": [
+      "localhost",
+      "devhub-34108.firebaseapp.com",
+      "devhub-34108.web.app"
+    ],
+    "signIn": {
+      "emailEnabled": true,
+      "passwordRequired": true,
+      "anonymousEnabled": false
+    },
+    "multiTenantAllowed": false
+  },
+  "queries": {
+    "Q01": {
+      "status": "PASS",
+      "httpStatus": 200,
+      "observed": {
+        "collection": "projects",
+        "filter": "status",
+        "operator": "==",
+        "authentication": "OAuth IAM, not Firebase application Auth",
+        "count": 0
+      }
+    },
+    "Q02": {
+      "status": "PASS",
+      "httpStatus": 200,
+      "observed": {
+        "collection": "projects",
+        "filter": "ownerId",
+        "operator": "==",
+        "authentication": "OAuth IAM, not Firebase application Auth",
+        "count": 0
+      }
+    },
+    "Q03": {
+      "status": "PASS",
+      "httpStatus": 200,
+      "observed": {
+        "collection": "applications",
+        "filter": "applicantId",
+        "operator": "==",
+        "authentication": "OAuth IAM, not Firebase application Auth",
+        "count": 0
+      }
+    },
+    "Q04": {
+      "status": "PASS",
+      "httpStatus": 200,
+      "observed": {
+        "collection": "applications",
+        "filter": "ownerId",
+        "operator": "==",
+        "authentication": "OAuth IAM, not Firebase application Auth",
+        "count": 0
+      }
+    }
+  },
+  "hosting": [
+    {
+      "name": "projects/devhub-34108/sites/devhub-34108",
+      "defaultUrl": "https://devhub-34108.web.app",
+      "type": "DEFAULT_SITE"
+    }
+  ],
+  "appCheckServices": [],
+  "remoteWrites": 0,
+  "deploymentApproved": false,
+  "productionReady": false,
+  "scope": "Dated observation. OAuth IAM query success is not application Security Rules permission."
+}
