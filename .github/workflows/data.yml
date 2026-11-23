@@ -26,12 +26,12 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Flutter SDK
-        run: |
-          git init "$RUNNER_TEMP/flutter-sdk"
-          git -C "$RUNNER_TEMP/flutter-sdk" remote add origin https://github.com/flutter/flutter.git
-          git -C "$RUNNER_TEMP/flutter-sdk" fetch --depth=1 origin abaf9c523780a608bd46686fd5e53740a07077f8
-          git -C "$RUNNER_TEMP/flutter-sdk" checkout --detach FETCH_HEAD
-          echo "$RUNNER_TEMP/flutter-sdk/bin" >> "$GITHUB_PATH"
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - run: flutter --version
       - run: flutter doctor -v
       - run: npm ci --ignore-scripts
       - run: npm run verify

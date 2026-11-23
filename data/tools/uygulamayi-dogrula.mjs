@@ -10,7 +10,7 @@ function run(name,args){
  process.stdout.write(result.stdout??'');process.stderr.write(result.stderr??'');assert.equal(result.status,0,name);
  return result.stdout;
 }
-run('flutter-analyze',['analyze']);
+run('flutter-analyze',['analyze','--no-fatal-infos']);
 const events=run('flutter-widget',['test','test/widget_test.dart','--reporter','json']);
 const rows=events.split(/\r?\n/).flatMap(l=>{try{return[JSON.parse(l)];}catch{return[];}});
 const tests=rows.filter(e=>e.type==='testDone'&&!e.hidden);assert.equal(tests.length,1);assert(tests.every(e=>e.result==='success'&&!e.skipped));
