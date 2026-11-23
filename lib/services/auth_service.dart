@@ -1,10 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/app_user.dart';
+import 'firestore_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth;
+  final FirestoreService? _firestoreService;
 
   // Test edilebilirlik için bağımlılık enjeksiyonu sağlandı
-  AuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
+  AuthService({
+    FirebaseAuth? auth,
+    FirestoreService? firestoreService,
+  })  : _auth = auth ?? FirebaseAuth.instance,
+        _firestoreService = firestoreService;
+
+  FirestoreService get _firestore => _firestoreService ?? FirestoreService();
 
   // Oturum durumunu anlık dinleyen akış tanımlandı
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -15,7 +24,7 @@ class AuthService {
   // Kullanıcının oturum açıp açmadığı kontrol edildi
   bool get isAuthenticated => _auth.currentUser != null;
 
-  // Yeni kullanıcı kaydı ve profil ismi güncellemesi yapıldı
+  // Yeni kullanıcı kaydı, displayName güncellemesi ve users/{uid} belge oluşturma işlemi
   Future<UserCredential> signUp({
     required String email,
     required String password,
@@ -27,9 +36,24 @@ class AuthService {
         password: password,
       );
 
-      if (name != null && name.trim().isNotEmpty) {
-        await credential.user?.updateDisplayName(name.trim());
-        await credential.user?.reload();
+      final user = credential.user;
+      final trimmedName = name?.trim() ?? '';
+
+      if (user != null) {
+        if (trimmedName.isNotEmpty) {
+          await user.updateDisplayName(trimmedName);
+          await user.reload();
+        }
+
+        await _firestore.createUserProfileIfMissing(
+          AppUser(
+            id: user.uid,
+            name: trimmedName.isNotEmpty
+                ? trimmedName
+                : (user.displayName ?? ''),
+            photoUrl: user.photoURL,
+          ),
+        );
       }
 
       return credential;
@@ -155,6 +179,10 @@ class AuthService {
         return 'Çok fazla başarısız deneme yapıldı. Lütfen biraz bekleyip tekrar deneyin.';
       case 'network-request-failed':
         return 'İnternet bağlantısı kurulamadı. Bağlantınızı kontrol ediniz.';
+      case 'operation-not-allowed':
+        return 'Bu giriş yöntemi şu anda aktif değil.';
+      case 'requires-recent-login':
+        return 'Güvenlik nedeniyle lütfen yeniden giriş yapınız.';
       default:
         return e.message ?? 'Bir kimlik doğrulama hatası oluştu (${e.code}).';
     }

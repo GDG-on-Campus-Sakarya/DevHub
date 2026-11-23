@@ -6,19 +6,31 @@ import 'login_screen.dart';
 
 /// Firebase oturum durumuna göre kullanıcıyı otomatik yönlendiren geçit widget'ı.
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+  final AuthService? authService;
+
+  const AuthGate({super.key, this.authService});
 
   @override
   Widget build(BuildContext context) {
+    final service = authService ?? AuthService();
+
     // Oturum akışı StreamBuilder ile gerçek zamanlı dinlendi
     return StreamBuilder<User?>(
-      stream: AuthService().authStateChanges,
+      stream: service.authStateChanges,
       builder: (context, snapshot) {
         // Oturum durumu kontrol edilirken yükleniyor çarkı gösterildi
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Oturum durumu kontrol edilirken bir hata oluştu.'),
             ),
           );
         }
