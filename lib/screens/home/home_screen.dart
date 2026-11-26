@@ -1,12 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/project.dart';
 import '../../navigation/app_routes.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/project_card.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.authService});
+
+  final AuthService? authService;
 
   static final GlobalKey _howItWorksKey = GlobalKey();
 
@@ -62,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _TopBar(isMobile: isMobile),
+                        _TopBar(isMobile: isMobile, authService: authService),
                         const SizedBox(height: 26),
                         _HeroSection(isMobile: isMobile),
                         const SizedBox(height: 28),
@@ -107,83 +111,153 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.isMobile});
+  const _TopBar({required this.isMobile, this.authService});
   final bool isMobile;
+  final AuthService? authService;
+
+  static const String _signOutAction = '__sign_out__';
+
+  Future<void> _handleSignOut(BuildContext context, AuthService auth) async {
+    try {
+      await auth.signOut();
+      if (!context.mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      child: Row(
-        children: [
-          const _BrandMark(),
-          const SizedBox(width: 10),
-          const Text(
-            'DevHub',
-            style: TextStyle(
-              fontSize: 22,
-              color: AppTheme.ink,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.8,
-            ),
-          ),
-          const Spacer(),
-          if (!isMobile) ...[
-            _NavTextButton(
-              label: 'Projeleri keşfet',
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.projects),
-            ),
-            const SizedBox(width: 8),
-            _NavTextButton(
-              label: 'Nasıl çalışır?',
-              onPressed: () {
-                final target = HomeScreen._howItWorksKey.currentContext;
-                if (target != null) {
-                  Scrollable.ensureVisible(
-                    target,
-                    duration: const Duration(milliseconds: 450),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-            ),
-            const SizedBox(width: 16),
-            OutlinedButton(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.profile),
-              child: const Text('Profilim'),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.login),
-              child: const Text('Giriş yap'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton.icon(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.register),
-              icon: const Icon(Icons.arrow_forward_rounded, size: 17),
-              label: const Text('Ücretsiz katıl'),
-            ),
-          ] else ...[
-            IconButton(
-              tooltip: 'Projeleri keşfet',
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.projects),
-              icon: const Icon(Icons.explore_outlined),
-            ),
-            PopupMenuButton<String>(
-              tooltip: 'Menüyü aç',
-              icon: const Icon(Icons.menu_rounded),
-              onSelected: (value) => HomeScreen._navigate(context, value),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: AppRoutes.projects, child: Text('Projeleri keşfet')),
-                PopupMenuItem(value: AppRoutes.login, child: Text('Giriş yap')),
-                PopupMenuItem(value: AppRoutes.register, child: Text('Kayıt ol')),
-                PopupMenuItem(value: AppRoutes.profile, child: Text('Profilim')),
-                PopupMenuItem(value: AppRoutes.applications, child: Text('Başvurularım')),
+    final auth = authService ?? AuthService();
+
+    return StreamBuilder<User?>(
+      stream: auth.authStateChanges,
+      initialData: auth.currentUser,
+      builder: (context, snapshot) {
+        final isSignedIn = snapshot.data != null;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          child: Row(
+            children: [
+              const _BrandMark(),
+              const SizedBox(width: 10),
+              const Text(
+                'DevHub',
+                style: TextStyle(
+                  fontSize: 22,
+                  color: AppTheme.ink,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              const Spacer(),
+              if (!isMobile) ...[
+                _NavTextButton(
+                  label: 'Projeleri keşfet',
+                  onPressed: () => HomeScreen._navigate(context, AppRoutes.projects),
+                ),
+                const SizedBox(width: 8),
+                _NavTextButton(
+                  label: 'Nasıl çalışır?',
+                  onPressed: () {
+                    final target = HomeScreen._howItWorksKey.currentContext;
+                    if (target != null) {
+                      Scrollable.ensureVisible(
+                        target,
+                        duration: const Duration(milliseconds: 450),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(width: 16),
+                if (isSignedIn) ...[
+                  OutlinedButton(
+                    onPressed: () => HomeScreen._navigate(context, AppRoutes.profile),
+                    child: const Text('Profilim'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () => HomeScreen._navigate(context, AppRoutes.applications),
+                    child: const Text('Başvurularım'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: () => _handleSignOut(context, auth),
+                    icon: const Icon(Icons.logout_rounded, size: 17),
+                    label: const Text('Çıkış yap'),
+                  ),
+                ] else ...[
+                  OutlinedButton(
+                    onPressed: () => HomeScreen._navigate(context, AppRoutes.login),
+                    child: const Text('Giriş yap'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: () => HomeScreen._navigate(context, AppRoutes.register),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 17),
+                    label: const Text('Ücretsiz katıl'),
+                  ),
+                ],
+              ] else ...[
+                IconButton(
+                  tooltip: 'Projeleri keşfet',
+                  onPressed: () => HomeScreen._navigate(context, AppRoutes.projects),
+                  icon: const Icon(Icons.explore_outlined),
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'Menüyü aç',
+                  icon: const Icon(Icons.menu_rounded),
+                  onSelected: (value) {
+                    if (value == _signOutAction) {
+                      _handleSignOut(context, auth);
+                    } else {
+                      HomeScreen._navigate(context, value);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: AppRoutes.projects,
+                      child: Text('Projeleri keşfet'),
+                    ),
+                    if (isSignedIn) ...[
+                      const PopupMenuItem(
+                        value: AppRoutes.profile,
+                        child: Text('Profilim'),
+                      ),
+                      const PopupMenuItem(
+                        value: AppRoutes.applications,
+                        child: Text('Başvurularım'),
+                      ),
+                      const PopupMenuItem(
+                        value: _signOutAction,
+                        child: Text('Çıkış yap'),
+                      ),
+                    ] else ...[
+                      const PopupMenuItem(
+                        value: AppRoutes.login,
+                        child: Text('Giriş yap'),
+                      ),
+                      const PopupMenuItem(
+                        value: AppRoutes.register,
+                        child: Text('Kayıt ol'),
+                      ),
+                    ],
+                  ],
+                ),
               ],
-            ),
-          ],
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
