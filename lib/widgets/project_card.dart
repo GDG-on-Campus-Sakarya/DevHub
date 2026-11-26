@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/project.dart';
 import '../theme/app_theme.dart';
+import 'status_badge.dart';
 
 /// Ana sayfa ve proje listesinde tekrar kullanılabilen proje kartı.
 class ProjectCard extends StatelessWidget {
@@ -51,40 +52,29 @@ class ProjectCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F8F1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(radius: 3, backgroundColor: Color(0xFF17A985)),
-                        SizedBox(width: 6),
-                        Text(
-                          'Ekip arıyor',
-                          style: TextStyle(
-                            color: Color(0xFF147A62),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  StatusBadge.project(project.effectiveStatus),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               Text(
                 project.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
+              if (project.category != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  project.category!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.primaryDark,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Text(
                 project.description,

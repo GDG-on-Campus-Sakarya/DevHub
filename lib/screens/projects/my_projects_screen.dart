@@ -35,12 +35,24 @@ class MyProjectsScreen extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final project = projects[index];
+              final statusLabel = switch (project.effectiveStatus) {
+                Project.statusOpen => 'Açık',
+                Project.statusFull => 'Dolu',
+                Project.statusCompleted => 'Tamamlandı',
+                _ => 'Kapalı',
+              };
+              final memberText = project.capacity != null && project.capacity! > 0
+                  ? '${project.memberIds.length}/${project.capacity} üye'
+                  : '${project.memberIds.length} üye';
               return Card(
                 child: ListTile(
                   title: Text(project.title),
                   subtitle: Text(
-                    '${project.memberIds.length} üye • '
-                    '${project.status == Project.statusOpen ? 'Açık' : 'Kapalı'}',
+                    [
+                      if (project.category != null) project.category!,
+                      memberText,
+                      statusLabel,
+                    ].join(' • '),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.push(
