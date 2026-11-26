@@ -851,14 +851,16 @@ class _HowItWorksSection extends StatelessWidget {
             ],
           )
         else
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var i = 0; i < steps.length; i++) ...[
-                Expanded(child: _StepCard(data: steps[i])),
-                if (i < steps.length - 1) const SizedBox(width: 16),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < steps.length; i++) ...[
+                  Expanded(child: _StepCard(data: steps[i])),
+                  if (i < steps.length - 1) const SizedBox(width: 16),
+                ],
               ],
-            ],
+            ),
           ),
       ],
     );
