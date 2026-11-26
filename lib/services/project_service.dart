@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/project.dart';
 import '../models/project_application.dart';
 
-/// Proje listeleme, oluşturma ve başvuru işlemleri.
+/// Proje listeleme, oluşturma, düzenleme, silme ve başvuru işlemleri.
 ///
 /// Yetki kontrolleri burada yalnızca kullanıcıya erken ve anlaşılır hata
 /// vermek içindir; asıl koruma `firestore.rules` içindedir.
@@ -36,6 +36,12 @@ class ProjectService {
   // ---------------------------------------------------------------------------
   // Projeler
   // ---------------------------------------------------------------------------
+
+  // Tüm projeler anlık dinlendi (durum filtrelemesi istemcide yapılır)
+  Stream<List<Project>> streamAllProjects() {
+    return _projects.snapshots().map((snap) => _sortProjects(
+        snap.docs.map((d) => Project.fromMap(d.data(), d.id)).toList()));
+  }
 
   // Açık projeler anlık dinlendi; birleşik indeks gerekmesin diye sıralama istemcide yapıldı
   Stream<List<Project>> streamOpenProjects() {
@@ -70,15 +76,22 @@ class ProjectService {
     required String description,
     required List<String> technologies,
     required List<String> neededRoles,
+    String? category,
+    int? capacity,
     String status = Project.statusOpen,
   }) async {
     final user = _requireContributor();
+    if (capacity != null && capacity < 1) {
+      throw 'Kontenjan en az 1 olmalıdır.';
+    }
     final project = Project(
       id: '',
       title: title.trim(),
       description: description.trim(),
       ownerId: user.uid,
       ownerName: _displayName(user),
+      category: category?.trim().isEmpty == true ? null : category?.trim(),
+      capacity: capacity,
       technologies: technologies,
       neededRoles: neededRoles,
       status: status,
@@ -102,15 +115,50 @@ class ProjectService {
     if (!project.isOwner(user.uid)) {
       throw 'Yalnızca proje sahibi bu projeyi düzenleyebilir.';
     }
+    if (project.capacity != null && project.capacity! < project.memberIds.length) {
+      throw 'Kontenjan mevcut üye sayısından (${project.memberIds.length}) az olamaz.';
+    }
     try {
-      await _projects.doc(project.id).update({
+      final updates = <String, dynamic>{
         'title': project.title.trim(),
         'description': project.description.trim(),
         'technologies': project.technologies,
         'neededRoles': project.neededRoles,
         'status': project.status,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+        if (project.category != null && project.category!.trim().isNotEmpty)
+          'category': project.category!.trim()
+        else
+          'category': FieldValue.delete(),
+        if (project.capacity != null && project.capacity! > 0)
+          'capacity': project.capacity
+        else
+          'capacity': FieldValue.delete(),
+      };
+      await _projects.doc(project.id).update(updates);
+    } on FirebaseException catch (e) {
+      throw _handleFirestoreException(e);
+    }
+  }
+
+  /// Proje sahibi kendi projesini ve ilişkili başvuruları siler.
+  Future<void> deleteProject(Project project) async {
+    final user = _requireContributor();
+    if (!project.isOwner(user.uid)) {
+      throw 'Yalnızca proje sahibi bu projeyi silebilir.';
+    }
+    try {
+      final appsSnap = await _applications
+          .where('projectId', isEqualTo: project.id)
+          .where('ownerId', isEqualTo: user.uid)
+          .get();
+
+      final batch = _firestore.batch();
+      for (final doc in appsSnap.docs) {
+        batch.delete(doc.reference);
+      }
+      batch.delete(_projects.doc(project.id));
+      await batch.commit();
     } on FirebaseException catch (e) {
       throw _handleFirestoreException(e);
     }
@@ -132,7 +180,7 @@ class ProjectService {
     });
   }
 
-  // Başvuru sabit belge ID'si ile işlem (transaction) içinde oluşturuldu; mükerrer başvuru engellendi
+  // Başvuru sabit belge ID'si ile işlem (transaction) içinde oluşturuldu; mükerrer başvuru ve kontenjan aşımı engellendi
   Future<void> applyToProject(Project project, String message) async {
     final user = _requireContributor();
     if (project.isOwner(user.uid)) {
@@ -144,11 +192,15 @@ class ProjectService {
     if (!project.isOpen) {
       throw 'Bu proje şu anda başvurulara kapalı.';
     }
+    if (project.isFull) {
+      throw 'Bu projenin kontenjanı dolmuştur.';
+    }
     final trimmed = message.trim();
     if (trimmed.isEmpty) {
       throw 'Lütfen bir başvuru mesajı yaz.';
     }
 
+    final projectRef = _projects.doc(project.id);
     final ref = _applications.doc(ProjectApplication.docId(project.id, user.uid));
     final application = ProjectApplication(
       id: ref.id,
@@ -162,6 +214,19 @@ class ProjectService {
 
     try {
       await _firestore.runTransaction((tx) async {
+        final liveProjectSnap = await tx.get(projectRef);
+        if (!liveProjectSnap.exists || liveProjectSnap.data() == null) {
+          throw 'Proje bulunamadı. Silinmiş olabilir.';
+        }
+        final liveProject =
+            Project.fromMap(liveProjectSnap.data()!, liveProjectSnap.id);
+        if (!liveProject.isOpen) {
+          throw 'Bu proje şu anda başvurulara kapalı.';
+        }
+        if (liveProject.isFull) {
+          throw 'Bu projenin kontenjanı dolmuştur.';
+        }
+
         final existing = await tx.get(ref);
         if (existing.exists) {
           throw 'Bu projeye zaten başvurdun.';
