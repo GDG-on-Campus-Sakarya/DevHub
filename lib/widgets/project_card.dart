@@ -124,9 +124,12 @@ class ProjectCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 15,
-                    backgroundColor: _projectColor(project.title).withOpacity(0.14),
+                    backgroundColor:
+                        _projectColor(project.title).withOpacity(0.14),
                     child: Text(
-                      _ownerInitials(project.ownerName.isEmpty ? 'DevHub' : project.ownerName),
+                      _ownerInitials(project.ownerName.isEmpty
+                          ? 'DevHub'
+                          : project.ownerName),
                       style: TextStyle(
                         color: _projectColor(project.title),
                         fontSize: 10,
@@ -137,7 +140,9 @@ class ProjectCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      project.ownerName.isEmpty ? 'DevHub üyesi' : project.ownerName,
+                      project.ownerName.isEmpty
+                          ? 'DevHub üyesi'
+                          : project.ownerName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(

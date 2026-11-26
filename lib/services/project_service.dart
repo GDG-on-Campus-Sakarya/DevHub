@@ -55,10 +55,8 @@ class ProjectService {
   // Giriş yapan kullanıcının sahibi olduğu projeler dinlendi
   Stream<List<Project>> streamMyProjects() {
     final uid = _requireUid();
-    return _projects
-        .where('ownerId', isEqualTo: uid)
-        .snapshots()
-        .map((snap) => _sortProjects(
+    return _projects.where('ownerId', isEqualTo: uid).snapshots().map((snap) =>
+        _sortProjects(
             snap.docs.map((d) => Project.fromMap(d.data(), d.id)).toList()));
   }
 
@@ -115,7 +113,8 @@ class ProjectService {
     if (!project.isOwner(user.uid)) {
       throw 'Yalnızca proje sahibi bu projeyi düzenleyebilir.';
     }
-    if (project.capacity != null && project.capacity! < project.memberIds.length) {
+    if (project.capacity != null &&
+        project.capacity! < project.memberIds.length) {
       throw 'Kontenjan mevcut üye sayısından (${project.memberIds.length}) az olamaz.';
     }
     try {
@@ -201,7 +200,8 @@ class ProjectService {
     }
 
     final projectRef = _projects.doc(project.id);
-    final ref = _applications.doc(ProjectApplication.docId(project.id, user.uid));
+    final ref =
+        _applications.doc(ProjectApplication.docId(project.id, user.uid));
     final application = ProjectApplication(
       id: ref.id,
       projectId: project.id,
@@ -252,7 +252,8 @@ class ProjectService {
   }
 
   // Kullanıcının projelerine gelen başvurular dinlendi; istenirse tek projeye süzüldü
-  Stream<List<ProjectApplication>> streamIncomingApplications({String? projectId}) {
+  Stream<List<ProjectApplication>> streamIncomingApplications(
+      {String? projectId}) {
     final uid = _requireUid();
     return _applications
         .where('ownerId', isEqualTo: uid)

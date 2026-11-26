@@ -41,9 +41,10 @@ class MyProjectsScreen extends StatelessWidget {
                 Project.statusCompleted => 'Tamamlandı',
                 _ => 'Kapalı',
               };
-              final memberText = project.capacity != null && project.capacity! > 0
-                  ? '${project.memberIds.length}/${project.capacity} üye'
-                  : '${project.memberIds.length} üye';
+              final memberText =
+                  project.capacity != null && project.capacity! > 0
+                      ? '${project.memberIds.length}/${project.capacity} üye'
+                      : '${project.memberIds.length} üye';
               return Card(
                 child: ListTile(
                   title: Text(project.title),
@@ -58,7 +59,8 @@ class MyProjectsScreen extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ProjectDetailScreen(projectId: project.id),
+                      builder: (_) =>
+                          ProjectDetailScreen(projectId: project.id),
                     ),
                   ),
                 ),

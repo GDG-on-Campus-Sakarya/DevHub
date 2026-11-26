@@ -153,7 +153,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           spacing: 8,
                           runSpacing: 6,
                           children: [
-                            for (final e in p.technologies) Chip(label: Text(e)),
+                            for (final e in p.technologies)
+                              Chip(label: Text(e)),
                           ],
                         ),
                       const SizedBox(height: 18),
@@ -211,7 +212,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.error,
                     side: BorderSide(
-                      color: Theme.of(context).colorScheme.error.withOpacity(0.5),
+                      color:
+                          Theme.of(context).colorScheme.error.withOpacity(0.5),
                     ),
                   ),
                   onPressed: _deleting ? null : () => _confirmDelete(p),

@@ -83,8 +83,9 @@ class Project {
       description: data['description'] as String? ?? '',
       ownerId: data['ownerId'] as String? ?? '',
       ownerName: data['ownerName'] as String? ?? '',
-      category:
-          rawCategory != null && rawCategory.trim().isNotEmpty ? rawCategory.trim() : null,
+      category: rawCategory != null && rawCategory.trim().isNotEmpty
+          ? rawCategory.trim()
+          : null,
       capacity: (data['capacity'] as num?)?.toInt(),
       technologies: _stringList(data['technologies']),
       neededRoles: _stringList(data['neededRoles']),
@@ -102,7 +103,8 @@ class Project {
       'description': description,
       'ownerId': ownerId,
       'ownerName': ownerName,
-      if (category != null && category!.trim().isNotEmpty) 'category': category!.trim(),
+      if (category != null && category!.trim().isNotEmpty)
+        'category': category!.trim(),
       if (capacity != null && capacity! > 0) 'capacity': capacity,
       'technologies': technologies,
       'neededRoles': neededRoles,

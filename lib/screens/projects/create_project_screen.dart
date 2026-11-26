@@ -143,10 +143,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                       TextFormField(
                         controller: _title,
                         maxLength: 100,
-                        decoration: const InputDecoration(labelText: 'Proje adı'),
-                        validator: (value) => value == null || value.trim().length < 3
-                            ? 'En az 3 karakter gir.'
-                            : null,
+                        decoration:
+                            const InputDecoration(labelText: 'Proje adı'),
+                        validator: (value) =>
+                            value == null || value.trim().length < 3
+                                ? 'En az 3 karakter gir.'
+                                : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -154,15 +156,18 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         minLines: 4,
                         maxLines: 7,
                         maxLength: 2000,
-                        decoration: const InputDecoration(labelText: 'Proje açıklaması'),
-                        validator: (value) => value == null || value.trim().length < 10
-                            ? 'Açıklama en az 10 karakter olmalı.'
-                            : null,
+                        decoration: const InputDecoration(
+                            labelText: 'Proje açıklaması'),
+                        validator: (value) =>
+                            value == null || value.trim().length < 10
+                                ? 'Açıklama en az 10 karakter olmalı.'
+                                : null,
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _category,
-                        decoration: const InputDecoration(labelText: 'Kategori'),
+                        decoration:
+                            const InputDecoration(labelText: 'Kategori'),
                         items: [
                           for (final cat in Project.categories)
                             DropdownMenuItem(value: cat, child: Text(cat)),
@@ -191,13 +196,16 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                       TextFormField(
                         controller: _capacity,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
                         decoration: const InputDecoration(
                           labelText: 'Ekip kontenjanı (isteğe bağlı)',
                           hintText: 'Örn: 5',
                         ),
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty) return null;
+                          if (value == null || value.trim().isEmpty)
+                            return null;
                           final parsed = int.tryParse(value.trim());
                           if (parsed == null || parsed < 1) {
                             return 'Kontenjan en az 1 olmalıdır.';
@@ -211,7 +219,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _status,
-                        decoration: const InputDecoration(labelText: 'Proje durumu'),
+                        decoration:
+                            const InputDecoration(labelText: 'Proje durumu'),
                         items: const [
                           DropdownMenuItem(
                             value: Project.statusOpen,
@@ -237,7 +246,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Text('Kaydet'),
                       ),
