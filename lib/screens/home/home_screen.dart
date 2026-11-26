@@ -1,12 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/project.dart';
 import '../../navigation/app_routes.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/project_card.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.authService});
+
+  final AuthService? authService;
 
   static final GlobalKey _howItWorksKey = GlobalKey();
 
@@ -62,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _TopBar(isMobile: isMobile),
+                        _TopBar(isMobile: isMobile, authService: authService),
                         const SizedBox(height: 26),
                         _HeroSection(isMobile: isMobile),
                         const SizedBox(height: 28),
@@ -74,7 +78,8 @@ class HomeScreen extends StatelessWidget {
                           description:
                               'İlgi alanına uygun bir ekibe katıl veya fikrini birlikte geliştireceğin insanları bul.',
                           actionLabel: 'Tüm projeleri gör',
-                          onAction: () => _navigate(context, AppRoutes.projects),
+                          onAction: () =>
+                              _navigate(context, AppRoutes.projects),
                           isMobile: isMobile,
                         ),
                         const SizedBox(height: 24),
@@ -83,7 +88,8 @@ class HomeScreen extends StatelessWidget {
                           isMobile: isMobile,
                         ),
                         const SizedBox(height: 68),
-                        _HowItWorksSection(key: _howItWorksKey, isMobile: isMobile),
+                        _HowItWorksSection(
+                            key: _howItWorksKey, isMobile: isMobile),
                         const SizedBox(height: 28),
                         _BottomCta(isMobile: isMobile),
                         const SizedBox(height: 26),
@@ -107,83 +113,178 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.isMobile});
+  const _TopBar({required this.isMobile, this.authService});
   final bool isMobile;
+  final AuthService? authService;
+
+  static const String _signOutAction = '__sign_out__';
+
+  Future<void> _handleSignOut(BuildContext context, AuthService auth) async {
+    try {
+      await auth.signOut();
+      if (!context.mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      child: Row(
-        children: [
-          const _BrandMark(),
-          const SizedBox(width: 10),
-          const Text(
-            'DevHub',
-            style: TextStyle(
-              fontSize: 22,
-              color: AppTheme.ink,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.8,
-            ),
-          ),
-          const Spacer(),
-          if (!isMobile) ...[
-            _NavTextButton(
-              label: 'Projeleri keşfet',
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.projects),
-            ),
-            const SizedBox(width: 8),
-            _NavTextButton(
-              label: 'Nasıl çalışır?',
-              onPressed: () {
-                final target = HomeScreen._howItWorksKey.currentContext;
-                if (target != null) {
-                  Scrollable.ensureVisible(
-                    target,
-                    duration: const Duration(milliseconds: 450),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-            ),
-            const SizedBox(width: 16),
-            OutlinedButton(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.profile),
-              child: const Text('Profilim'),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.login),
-              child: const Text('Giriş yap'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton.icon(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.register),
-              icon: const Icon(Icons.arrow_forward_rounded, size: 17),
-              label: const Text('Ücretsiz katıl'),
-            ),
-          ] else ...[
-            IconButton(
-              tooltip: 'Projeleri keşfet',
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.projects),
-              icon: const Icon(Icons.explore_outlined),
-            ),
-            PopupMenuButton<String>(
-              tooltip: 'Menüyü aç',
-              icon: const Icon(Icons.menu_rounded),
-              onSelected: (value) => HomeScreen._navigate(context, value),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: AppRoutes.projects, child: Text('Projeleri keşfet')),
-                PopupMenuItem(value: AppRoutes.login, child: Text('Giriş yap')),
-                PopupMenuItem(value: AppRoutes.register, child: Text('Kayıt ol')),
-                PopupMenuItem(value: AppRoutes.profile, child: Text('Profilim')),
-                PopupMenuItem(value: AppRoutes.applications, child: Text('Başvurularım')),
+    final auth = authService ?? AuthService();
+
+    return StreamBuilder<User?>(
+      stream: auth.authStateChanges,
+      initialData: auth.currentUser,
+      builder: (context, snapshot) {
+        final isSignedIn = snapshot.data != null;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          child: Row(
+            children: [
+              const _BrandMark(),
+              const SizedBox(width: 10),
+              const Text(
+                'DevHub',
+                style: TextStyle(
+                  fontSize: 22,
+                  color: AppTheme.ink,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              const SizedBox(width: 16),
+              if (!isMobile)
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _NavTextButton(
+                          label: 'Projeleri keşfet',
+                          onPressed: () =>
+                              HomeScreen._navigate(context, AppRoutes.projects),
+                        ),
+                        _NavTextButton(
+                          label: 'Nasıl çalışır?',
+                          onPressed: () {
+                            final target =
+                                HomeScreen._howItWorksKey.currentContext;
+                            if (target != null) {
+                              Scrollable.ensureVisible(
+                                target,
+                                duration: const Duration(milliseconds: 450),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          },
+                        ),
+                        if (isSignedIn) ...[
+                          OutlinedButton(
+                            onPressed: () => HomeScreen._navigate(
+                              context,
+                              AppRoutes.profile,
+                            ),
+                            child: const Text('Profilim'),
+                          ),
+                          OutlinedButton(
+                            onPressed: () => HomeScreen._navigate(
+                              context,
+                              AppRoutes.applications,
+                            ),
+                            child: const Text('Başvurularım'),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () => _handleSignOut(context, auth),
+                            icon: const Icon(Icons.logout_rounded, size: 17),
+                            label: const Text('Çıkış yap'),
+                          ),
+                        ] else ...[
+                          OutlinedButton(
+                            onPressed: () =>
+                                HomeScreen._navigate(context, AppRoutes.login),
+                            child: const Text('Giriş yap'),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () => HomeScreen._navigate(
+                              context,
+                              AppRoutes.register,
+                            ),
+                            icon: const Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 17,
+                            ),
+                            label: const Text('Ücretsiz katıl'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                )
+              else ...[
+                const Spacer(),
+                IconButton(
+                  tooltip: 'Projeleri keşfet',
+                  onPressed: () =>
+                      HomeScreen._navigate(context, AppRoutes.projects),
+                  icon: const Icon(Icons.explore_outlined),
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'Menüyü aç',
+                  icon: const Icon(Icons.menu_rounded),
+                  onSelected: (value) {
+                    if (value == _signOutAction) {
+                      _handleSignOut(context, auth);
+                    } else {
+                      HomeScreen._navigate(context, value);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: AppRoutes.projects,
+                      child: Text('Projeleri keşfet'),
+                    ),
+                    if (isSignedIn) ...[
+                      const PopupMenuItem(
+                        value: AppRoutes.profile,
+                        child: Text('Profilim'),
+                      ),
+                      const PopupMenuItem(
+                        value: AppRoutes.applications,
+                        child: Text('Başvurularım'),
+                      ),
+                      const PopupMenuItem(
+                        value: _signOutAction,
+                        child: Text('Çıkış yap'),
+                      ),
+                    ] else ...[
+                      const PopupMenuItem(
+                        value: AppRoutes.login,
+                        child: Text('Giriş yap'),
+                      ),
+                      const PopupMenuItem(
+                        value: AppRoutes.register,
+                        child: Text('Kayıt ol'),
+                      ),
+                    ],
+                  ],
+                ),
               ],
-            ),
-          ],
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -272,7 +373,8 @@ class _HeroSection extends StatelessWidget {
               height: 330,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.08), width: 1.5),
+                border: Border.all(
+                    color: Colors.white.withOpacity(0.08), width: 1.5),
               ),
             ),
           ),
@@ -322,12 +424,14 @@ class _HeroCopy extends StatelessWidget {
             children: [
               Icon(Icons.auto_awesome_rounded, color: AppTheme.mint, size: 15),
               SizedBox(width: 8),
-              Text(
-                'Öğrenciler için proje topluluğu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
+              Flexible(
+                child: Text(
+                  'Öğrenciler için proje topluluğu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -368,21 +472,25 @@ class _HeroCopy extends StatelessWidget {
           runSpacing: 10,
           children: [
             ElevatedButton.icon(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.projects),
+              onPressed: () =>
+                  HomeScreen._navigate(context, AppRoutes.projects),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.mint,
                 foregroundColor: AppTheme.ink,
-                padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 17),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 19, vertical: 17),
               ),
               icon: const Icon(Icons.explore_rounded, size: 18),
               label: const Text('Projeleri keşfet'),
             ),
             OutlinedButton.icon(
-              onPressed: () => HomeScreen._navigate(context, AppRoutes.createProject),
+              onPressed: () =>
+                  HomeScreen._navigate(context, AppRoutes.createProject),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: BorderSide(color: Colors.white.withOpacity(0.25)),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               ),
               icon: const Icon(Icons.add_rounded, size: 18),
               label: const Text('Proje oluştur'),
@@ -394,7 +502,8 @@ class _HeroCopy extends StatelessWidget {
           spacing: 18,
           runSpacing: 12,
           children: const [
-            _HeroPerk(icon: Icons.check_circle_rounded, label: 'Ücretsiz katılım'),
+            _HeroPerk(
+                icon: Icons.check_circle_rounded, label: 'Ücretsiz katılım'),
             _HeroPerk(icon: Icons.groups_rounded, label: 'Ekip çalışması'),
           ],
         ),
@@ -445,11 +554,17 @@ class _HeroPreview extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'Topluluğundan seçkiler',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              const Expanded(
+                child: Text(
+                  'Topluluğundan seçkiler',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 width: 8,
                 height: 8,
@@ -488,7 +603,8 @@ class _HeroPreview extends StatelessWidget {
                 CircleAvatar(
                   radius: 17,
                   backgroundColor: AppTheme.mint,
-                  child: Icon(Icons.group_add_rounded, color: AppTheme.ink, size: 18),
+                  child: Icon(Icons.group_add_rounded,
+                      color: AppTheme.ink, size: 18),
                 ),
                 SizedBox(width: 11),
                 Expanded(
@@ -497,17 +613,22 @@ class _HeroPreview extends StatelessWidget {
                     children: [
                       Text(
                         'Doğru ekiple tanış',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12),
                       ),
                       SizedBox(height: 3),
                       Text(
                         'Fikrini bir sonraki seviyeye taşı.',
-                        style: TextStyle(color: Color(0xFFD9DDF7), fontSize: 11),
+                        style:
+                            TextStyle(color: Color(0xFFD9DDF7), fontSize: 11),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_rounded, color: AppTheme.mint, size: 17),
+                Icon(Icons.arrow_forward_rounded,
+                    color: AppTheme.mint, size: 17),
               ],
             ),
           ),
@@ -557,13 +678,16 @@ class _PreviewProjectTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFFB9BEDD), fontSize: 11),
+                  style:
+                      const TextStyle(color: Color(0xFFB9BEDD), fontSize: 11),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -597,13 +721,16 @@ class _TrustStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = const [
-      _TrustItem(icon: Icons.lightbulb_outline_rounded, label: 'Fikrini paylaş'),
+      _TrustItem(
+          icon: Icons.lightbulb_outline_rounded, label: 'Fikrini paylaş'),
       _TrustItem(icon: Icons.people_alt_outlined, label: 'Ekip arkadaşını bul'),
-      _TrustItem(icon: Icons.rocket_launch_outlined, label: 'Birlikte geliştir'),
+      _TrustItem(
+          icon: Icons.rocket_launch_outlined, label: 'Birlikte geliştir'),
     ];
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: isMobile ? 17 : 22, horizontal: 18),
+      padding:
+          EdgeInsets.symmetric(vertical: isMobile ? 17 : 22, horizontal: 18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -705,7 +832,11 @@ class _SectionHeading extends StatelessWidget {
         const SizedBox(height: 10),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 650),
-          child: Text(description, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.muted, fontSize: 14)),
+          child: Text(description,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(color: AppTheme.muted, fontSize: 14)),
         ),
       ],
     );
@@ -754,13 +885,10 @@ class _FeaturedProjectGrid extends StatelessWidget {
       return Column(
         children: [
           for (var i = 0; i < projects.length; i++) ...[
-            SizedBox(
-              height: 290,
-              child: ProjectCard(
-                project: projects[i],
-                compact: true,
-                onTap: () => HomeScreen._navigate(context, AppRoutes.projects),
-              ),
+            ProjectCard(
+              project: projects[i],
+              compact: true,
+              onTap: () => HomeScreen._navigate(context, AppRoutes.projects),
             ),
             if (i < projects.length - 1) const SizedBox(height: 14),
           ],
@@ -768,22 +896,21 @@ class _FeaturedProjectGrid extends StatelessWidget {
       );
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < projects.length; i++) ...[
-          Expanded(
-            child: SizedBox(
-              height: 310,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < projects.length; i++) ...[
+            Expanded(
               child: ProjectCard(
                 project: projects[i],
                 onTap: () => HomeScreen._navigate(context, AppRoutes.projects),
               ),
             ),
-          ),
-          if (i < projects.length - 1) const SizedBox(width: 16),
+            if (i < projects.length - 1) const SizedBox(width: 16),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -799,7 +926,8 @@ class _HowItWorksSection extends StatelessWidget {
         number: '01',
         icon: Icons.travel_explore_rounded,
         title: 'Keşfet',
-        description: 'İlgini çeken projeleri ve ekiplerin aradığı rolleri incele.',
+        description:
+            'İlgini çeken projeleri ve ekiplerin aradığı rolleri incele.',
         tint: AppTheme.softBlue,
         accent: Color(0xFF3478D4),
       ),
@@ -807,7 +935,8 @@ class _HowItWorksSection extends StatelessWidget {
         number: '02',
         icon: Icons.handshake_outlined,
         title: 'Katıl veya paylaş',
-        description: 'Bir ekibe başvur ya da kendi fikrin için ekip arkadaşları ara.',
+        description:
+            'Bir ekibe başvur ya da kendi fikrin için ekip arkadaşları ara.',
         tint: AppTheme.softPurple,
         accent: AppTheme.primary,
       ),
@@ -815,7 +944,8 @@ class _HowItWorksSection extends StatelessWidget {
         number: '03',
         icon: Icons.rocket_launch_rounded,
         title: 'Birlikte üret',
-        description: 'Yeni beceriler kazan ve fikrini gerçek bir projeye dönüştür.',
+        description:
+            'Yeni beceriler kazan ve fikrini gerçek bir projeye dönüştür.',
         tint: Color(0xFFE5F8EF),
         accent: Color(0xFF159B78),
       ),
@@ -851,14 +981,16 @@ class _HowItWorksSection extends StatelessWidget {
             ],
           )
         else
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var i = 0; i < steps.length; i++) ...[
-                Expanded(child: _StepCard(data: steps[i])),
-                if (i < steps.length - 1) const SizedBox(width: 16),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < steps.length; i++) ...[
+                  Expanded(child: _StepCard(data: steps[i])),
+                  if (i < steps.length - 1) const SizedBox(width: 16),
+                ],
               ],
-            ],
+            ),
           ),
       ],
     );
@@ -939,7 +1071,8 @@ class _BottomCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 22 : 34, vertical: 28),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 22 : 34, vertical: 28),
       decoration: BoxDecoration(
         color: AppTheme.softPurple,
         borderRadius: BorderRadius.circular(24),
@@ -954,7 +1087,8 @@ class _BottomCta extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () => HomeScreen._navigate(context, AppRoutes.register),
+                    onPressed: () =>
+                        HomeScreen._navigate(context, AppRoutes.register),
                     icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                     label: const Text('DevHub’a katıl'),
                   ),
@@ -966,7 +1100,8 @@ class _BottomCta extends StatelessWidget {
                 const Expanded(child: _CtaCopy()),
                 const SizedBox(width: 20),
                 ElevatedButton.icon(
-                  onPressed: () => HomeScreen._navigate(context, AppRoutes.register),
+                  onPressed: () =>
+                      HomeScreen._navigate(context, AppRoutes.register),
                   icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                   label: const Text('DevHub’a katıl'),
                 ),
@@ -1013,22 +1148,38 @@ class _Footer extends StatelessWidget {
         ? const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [_BrandMark(), SizedBox(width: 10), Text('DevHub', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.ink))]),
+              Row(children: [
+                _BrandMark(),
+                SizedBox(width: 10),
+                Text('DevHub',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        color: AppTheme.ink))
+              ]),
               SizedBox(height: 12),
-              Text('Öğrenciler için, öğrencilerle birlikte.', style: TextStyle(color: AppTheme.muted, fontSize: 12)),
+              Text('Öğrenciler için, öğrencilerle birlikte.',
+                  style: TextStyle(color: AppTheme.muted, fontSize: 12)),
               SizedBox(height: 10),
-              Text('© DevHub · Üniversite projelerini birlikte geliştir.', style: TextStyle(color: AppTheme.muted, fontSize: 11)),
+              Text('© DevHub · Üniversite projelerini birlikte geliştir.',
+                  style: TextStyle(color: AppTheme.muted, fontSize: 11)),
             ],
           )
         : const Row(
             children: [
               _BrandMark(),
               SizedBox(width: 10),
-              Text('DevHub', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.ink)),
+              Text('DevHub',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      color: AppTheme.ink)),
               SizedBox(width: 18),
-              Text('Öğrenciler için, öğrencilerle birlikte.', style: TextStyle(color: AppTheme.muted, fontSize: 12)),
+              Text('Öğrenciler için, öğrencilerle birlikte.',
+                  style: TextStyle(color: AppTheme.muted, fontSize: 12)),
               Spacer(),
-              Text('© DevHub · Birlikte üret.', style: TextStyle(color: AppTheme.muted, fontSize: 12)),
+              Text('© DevHub · Birlikte üret.',
+                  style: TextStyle(color: AppTheme.muted, fontSize: 12)),
             ],
           );
   }
