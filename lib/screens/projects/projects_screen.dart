@@ -87,7 +87,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         if (trimmed.isNotEmpty) set.add(trimmed);
       }
     }
-    return set.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return set.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
   }
 
   @override
@@ -188,7 +189,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
-                      hintText: 'Proje adı, açıklama, teknoloji veya kategori ara',
+                      hintText:
+                          'Proje adı, açıklama, teknoloji veya kategori ara',
                       suffixIcon: _query.text.isNotEmpty
                           ? IconButton(
                               tooltip: 'Aramayı temizle',
@@ -205,8 +207,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       SizedBox(
-                        width: 190,
+                        width: 205,
                         child: DropdownButtonFormField<String?>(
+                          isExpanded: true,
                           initialValue: _selectedCategory,
                           decoration: const InputDecoration(
                             labelText: 'Kategori',
@@ -215,12 +218,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                           items: [
                             const DropdownMenuItem<String?>(
                               value: null,
-                              child: Text('Tüm kategoriler'),
+                              child: Text('Tüm kategoriler',
+                                  overflow: TextOverflow.ellipsis),
                             ),
                             for (final cat in Project.categories)
                               DropdownMenuItem<String?>(
                                 value: cat,
-                                child: Text(cat),
+                                child:
+                                    Text(cat, overflow: TextOverflow.ellipsis),
                               ),
                           ],
                           onChanged: (value) =>
@@ -228,8 +233,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         ),
                       ),
                       SizedBox(
-                        width: 190,
+                        width: 195,
                         child: DropdownButtonFormField<String?>(
+                          isExpanded: true,
                           initialValue: _selectedStatus,
                           decoration: const InputDecoration(
                             labelText: 'Durum',
@@ -238,7 +244,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                           items: const [
                             DropdownMenuItem<String?>(
                               value: null,
-                              child: Text('Tüm durumlar'),
+                              child: Text('Tüm durumlar',
+                                  overflow: TextOverflow.ellipsis),
                             ),
                             DropdownMenuItem<String?>(
                               value: Project.statusOpen,
@@ -263,8 +270,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                       ),
                       if (availableTechnologies.isNotEmpty)
                         SizedBox(
-                          width: 190,
+                          width: 205,
                           child: DropdownButtonFormField<String?>(
+                            isExpanded: true,
                             initialValue: _selectedTechnology,
                             decoration: const InputDecoration(
                               labelText: 'Teknoloji',
@@ -273,12 +281,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                             items: [
                               const DropdownMenuItem<String?>(
                                 value: null,
-                                child: Text('Tüm teknolojiler'),
+                                child: Text('Tüm teknolojiler',
+                                    overflow: TextOverflow.ellipsis),
                               ),
                               for (final tech in availableTechnologies)
                                 DropdownMenuItem<String?>(
                                   value: tech,
-                                  child: Text(tech),
+                                  child: Text(tech,
+                                      overflow: TextOverflow.ellipsis),
                                 ),
                             ],
                             onChanged: (value) =>
@@ -332,8 +342,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      ProjectDetailScreen(projectId: project.id),
+                                  builder: (_) => ProjectDetailScreen(
+                                      projectId: project.id),
                                 ),
                               ),
                             ),
