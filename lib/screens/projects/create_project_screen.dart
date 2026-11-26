@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../models/project.dart';
 import '../../services/project_service.dart';
 
 class CreateProjectScreen extends StatefulWidget {
-  const CreateProjectScreen({super.key, this.project});
+  const CreateProjectScreen({super.key, this.project, this.service});
 
   final Project? project;
+  final ProjectService? service;
 
   @override
   State<CreateProjectScreen> createState() => _CreateProjectScreenState();
@@ -18,10 +20,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   final _description = TextEditingController();
   final _technologies = TextEditingController();
   final _roles = TextEditingController();
-  final _service = ProjectService();
+  final _capacity = TextEditingController();
+  late final ProjectService _service = widget.service ?? ProjectService();
 
   bool _saving = false;
   String _status = Project.statusOpen;
+  String _category = Project.categories.first;
 
   @override
   void initState() {
@@ -32,7 +36,14 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       _description.text = project.description;
       _technologies.text = project.technologies.join(', ');
       _roles.text = project.neededRoles.join(', ');
+      if (project.capacity != null && project.capacity! > 0) {
+        _capacity.text = project.capacity.toString();
+      }
       _status = project.status;
+      if (project.category != null &&
+          Project.categories.contains(project.category)) {
+        _category = project.category!;
+      }
     }
   }
 
@@ -42,6 +53,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     _description.dispose();
     _technologies.dispose();
     _roles.dispose();
+    _capacity.dispose();
     super.dispose();
   }
 
@@ -52,18 +64,27 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       .toSet()
       .toList();
 
+  int? _parseCapacity() {
+    final text = _capacity.text.trim();
+    if (text.isEmpty) return null;
+    return int.tryParse(text);
+  }
+
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
     setState(() => _saving = true);
 
     try {
       final project = widget.project;
+      final capacity = _parseCapacity();
       if (project == null) {
         await _service.createProject(
           title: _title.text,
           description: _description.text,
           technologies: _parseList(_technologies.text),
           neededRoles: _parseList(_roles.text),
+          category: _category,
+          capacity: capacity,
           status: _status,
         );
       } else {
@@ -73,6 +94,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             description: _description.text.trim(),
             technologies: _parseList(_technologies.text),
             neededRoles: _parseList(_roles.text),
+            category: _category,
+            capacity: capacity,
+            clearCapacity: capacity == null,
             status: _status,
           ),
         );
@@ -95,9 +119,13 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final project = widget.project;
+    final isEditing = project != null;
+    final minCapacity = isEditing ? project.memberIds.length : 1;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.project == null ? 'Proje oluştur' : 'Projeyi düzenle'),
+        title: Text(isEditing ? 'Projeyi düzenle' : 'Proje oluştur'),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -132,6 +160,18 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                             : null,
                       ),
                       const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: _category,
+                        decoration: const InputDecoration(labelText: 'Kategori'),
+                        items: [
+                          for (final cat in Project.categories)
+                            DropdownMenuItem(value: cat, child: Text(cat)),
+                        ],
+                        onChanged: (value) => setState(
+                          () => _category = value ?? Project.categories.first,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _technologies,
                         decoration: const InputDecoration(
@@ -148,9 +188,30 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _capacity,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration: const InputDecoration(
+                          labelText: 'Ekip kontenjanı (isteğe bağlı)',
+                          hintText: 'Örn: 5',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return null;
+                          final parsed = int.tryParse(value.trim());
+                          if (parsed == null || parsed < 1) {
+                            return 'Kontenjan en az 1 olmalıdır.';
+                          }
+                          if (parsed < minCapacity) {
+                            return 'Kontenjan mevcut üye sayısından ($minCapacity) az olamaz.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _status,
-                        decoration: const InputDecoration(labelText: 'Başvuru durumu'),
+                        decoration: const InputDecoration(labelText: 'Proje durumu'),
                         items: const [
                           DropdownMenuItem(
                             value: Project.statusOpen,
@@ -158,7 +219,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                           ),
                           DropdownMenuItem(
                             value: Project.statusClosed,
-                            child: Text('Kapalı'),
+                            child: Text('Kapalı - başvurular durduruldu'),
+                          ),
+                          DropdownMenuItem(
+                            value: Project.statusCompleted,
+                            child: Text('Tamamlandı'),
                           ),
                         ],
                         onChanged: (value) => setState(
